@@ -1,0 +1,641 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>what's your utility function?</title>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7;
+  --surface-1: #fcfcfb;
+  --text-primary: #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted: #898781;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --border: rgba(11,11,11,0.10);
+  --series-1: #2a78d6;   /* stated */
+  --series-2: #eb6834;   /* revealed */
+  --series-3: #1baf7a;   /* wished */
+  --pull: #2a78d6;       /* diverging: approach */
+  --push: #e34948;       /* diverging: avoidance */
+  --neutral: #f0efec;
+  --accent-wash: rgba(42,120,214,0.08);
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface-1: #1a1a19;
+    --text-primary: #f0efec;
+    --text-secondary: #c3c2b7;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --border: rgba(255,255,255,0.10);
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --pull: #3987e5;
+    --push: #e66767;
+    --neutral: #383835;
+    --accent-wash: rgba(57,135,229,0.14);
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--page); color: var(--text-primary);
+  font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main { max-width: 760px; margin: 0 auto; padding: 32px 20px 80px; }
+h1 { font-size: 28px; line-height: 1.2; margin: 0 0 8px; letter-spacing: -0.01em; }
+h2 { font-size: 20px; margin: 0 0 6px; }
+h3 { font-size: 15px; margin: 24px 0 4px; }
+p { margin: 0 0 12px; }
+.sub { color: var(--text-secondary); }
+.muted { color: var(--text-muted); font-size: 13px; }
+.card {
+  background: var(--surface-1); border: 1px solid var(--border);
+  border-radius: 12px; padding: 24px; margin: 16px 0;
+}
+.progress { display: flex; gap: 4px; margin: 20px 0 8px; }
+.progress span { flex: 1; height: 3px; border-radius: 2px; background: var(--grid); }
+.progress span.on { background: var(--series-1); }
+.step-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
+.quote { border-left: 2px solid var(--axis); padding: 2px 0 2px 14px; margin: 16px 0; color: var(--text-secondary); }
+.quote b { color: var(--text-primary); }
+
+/* controls */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.chip {
+  border: 1px solid var(--border); background: transparent; color: var(--text-primary);
+  border-radius: 999px; padding: 6px 14px; font: inherit; font-size: 14px; cursor: pointer;
+}
+.chip[aria-pressed="true"] { background: var(--accent-wash); border-color: var(--series-1); }
+.chip small { color: var(--text-muted); }
+.row { display: grid; grid-template-columns: 150px 1fr 44px; gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--grid); }
+.row:last-child { border-bottom: 0; }
+.row .name { font-weight: 600; font-size: 14px; }
+.row .name small { display: block; font-weight: 400; color: var(--text-muted); font-size: 12px; line-height: 1.3; }
+.row output { text-align: right; font-variant-numeric: tabular-nums; color: var(--text-secondary); font-size: 14px; }
+.row2 { display: grid; grid-template-columns: 150px 1fr 1fr; gap: 16px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--grid); }
+.row2:last-child { border-bottom: 0; }
+.row2 label { font-size: 12px; color: var(--text-muted); display: block; }
+input[type=range] { width: 100%; accent-color: var(--series-1); }
+input[type=number] {
+  width: 100%; font: inherit; padding: 6px 8px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--page); color: var(--text-primary);
+}
+input[type=text] {
+  font: inherit; font-size: 14px; padding: 6px 12px; border-radius: 999px;
+  border: 1px solid var(--border); background: var(--page); color: var(--text-primary); width: 200px;
+}
+.nav { display: flex; justify-content: space-between; gap: 12px; margin-top: 20px; }
+button.btn {
+  font: inherit; font-size: 15px; border-radius: 8px; padding: 10px 18px; cursor: pointer;
+  border: 1px solid var(--border); background: transparent; color: var(--text-primary);
+}
+button.btn.primary { background: var(--text-primary); color: var(--surface-1); border-color: transparent; }
+button.btn:disabled { opacity: 0.4; cursor: default; }
+.sum { font-size: 13px; color: var(--text-muted); margin-top: 8px; }
+.sum.warn { color: var(--push); }
+
+/* results */
+.tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.tile { background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+.tile .k { font-size: 12px; color: var(--text-muted); }
+.tile .v { font-size: 32px; font-weight: 600; line-height: 1.2; margin: 4px 0; }
+.tile .d { font-size: 13px; color: var(--text-secondary); line-height: 1.4; }
+.eq {
+  font-family: "Cambria Math", "STIX Two Math", Georgia, serif; font-size: 20px; line-height: 1.8;
+  padding: 16px 0 4px;
+}
+.eq i { font-style: italic; }
+.eq .t { white-space: nowrap; }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--text-secondary); margin: 8px 0; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+svg text { fill: var(--text-secondary); font: 12px system-ui, -apple-system, "Segoe UI", sans-serif; }
+svg .tick { fill: var(--text-muted); font-variant-numeric: tabular-nums; }
+.insights li { margin-bottom: 10px; }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; font-variant-numeric: tabular-nums; }
+th, td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--grid); }
+th:first-child, td:first-child { text-align: left; }
+th { color: var(--text-muted); font-weight: 500; font-size: 12px; }
+.linkbtn { background: none; border: 0; color: var(--text-secondary); text-decoration: underline; cursor: pointer; font: inherit; font-size: 13px; padding: 0; }
+#tip {
+  position: fixed; pointer-events: none; background: var(--surface-1); color: var(--text-primary);
+  border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 13px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12); opacity: 0; transition: opacity .1s; max-width: 260px; z-index: 10;
+}
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.toast { font-size: 13px; color: var(--text-muted); margin-left: 8px; align-self: center; }
+@media (max-width: 600px) {
+  .row { grid-template-columns: 110px 1fr 36px; }
+  .row2 { grid-template-columns: 1fr 1fr; }
+  .row2 .name { grid-column: 1 / -1; }
+  .tiles { grid-template-columns: 1fr; }
+}
+@media print {
+  .nav, .actions, .progress { display: none; }
+  body { background: #fff; }
+}
+</style>
+</head>
+<body>
+<main>
+  <div class="step-label" id="stepLabel"></div>
+  <div class="progress" id="progress"></div>
+  <div id="view"></div>
+</main>
+<div id="tip" role="tooltip"></div>
+
+<script>
+/* ---------- model ---------- */
+const CATALOG = [
+  { key: "achievement",   sym: "A",  label: "achievement",   hint: "building, solving, making progress" },
+  { key: "relationships", sym: "R",  label: "relationships", hint: "partner, family, friends" },
+  { key: "meaning",       sym: "Me", label: "meaning",       hint: "work and time that matter to you" },
+  { key: "freedom",       sym: "F",  label: "freedom",       hint: "control over your time and choices" },
+  { key: "security",      sym: "S",  label: "security",      hint: "money in the bank, a safe future" },
+  { key: "leisure",       sym: "L",  label: "leisure",       hint: "rest, play, doing nothing" },
+  { key: "health",        sym: "He", label: "health",        hint: "sleep, sport, your body" },
+  { key: "recognition",   sym: "Rc", label: "recognition",   hint: "being seen, status, approval" },
+  { key: "money",         sym: "M",  label: "money",         hint: "income and what it buys" },
+  { key: "growth",        sym: "G",  label: "growth",        hint: "learning, becoming better" },
+];
+const DEFAULT_KEYS = ["achievement", "relationships", "meaning", "freedom", "security", "leisure"];
+
+const STEPS = ["intro", "variables", "stated", "pullpush", "levels", "revealed", "wished", "result"];
+const STEP_NAMES = {
+  intro: "start", variables: "1 · variables", stated: "2 · what you say matters",
+  pullpush: "3 · hanni or nanni", levels: "4 · the price of one more",
+  revealed: "5 · what your week says", wished: "6 · what you wish you wanted", result: "your utility function",
+};
+
+let state = loadState() || freshState();
+function freshState() {
+  return { step: 0, name: "", vars: DEFAULT_KEYS.map(k => ({ ...CATALOG.find(c => c.key === k), custom: false })), d: {} };
+}
+function d(key) {
+  if (!state.d[key]) state.d[key] = { stated: 5, pull: 5, push: 5, level: 5, hours: 5, wished: 5 };
+  return state.d[key];
+}
+function saveState() {
+  try { localStorage.setItem("ufn-state", JSON.stringify(state)); } catch (e) {}
+}
+function loadState() {
+  try {
+    if (location.hash.length > 1) {
+      const s = JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(1)))));
+      if (s && s.vars) return s;
+    }
+    const raw = localStorage.getItem("ufn-state");
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) { return null; }
+}
+
+const LN11 = Math.log(11);
+function normalize(arr) {
+  const s = arr.reduce((a, b) => a + b, 0);
+  return s > 0 ? arr.map(x => x / s) : arr.map(() => 1 / arr.length);
+}
+/* share of a variable's utility that comes from approach (hanni) vs avoidance (nanni) */
+function pullShare(v) { const t = v.pull + v.push; return t === 0 ? 0.5 : v.pull / t; }
+/* u(x) on [0,1]: approach term ln(1+x)/ln11, avoidance term (1 - 1/(1+x)) * 11/10 */
+function u(p, x) { return p * Math.log(1 + x) / LN11 + (1 - p) * (1 - 1 / (1 + x)) * 1.1; }
+function mu(p, x) { return p / ((1 + x) * LN11) + (1 - p) * 1.1 / ((1 + x) * (1 + x)); }
+
+function compute() {
+  const vs = state.vars.map(v => ({ ...v, ...d(v.key) }));
+  const s = normalize(vs.map(v => v.stated));
+  const r = normalize(vs.map(v => +v.hours || 0));
+  const w = normalize(vs.map(v => v.wished));
+  const rows = vs.map((v, i) => {
+    const p = pullShare(v);
+    return { ...v, s: s[i], r: r[i], w: w[i], p, u: u(p, v.level), mu: s[i] * mu(p, v.level) };
+  });
+  const muN = normalize(rows.map(x => x.mu));
+  rows.forEach((x, i) => (x.muShare = muN[i]));
+  const alignment = 1 - 0.5 * rows.reduce((a, x) => a + Math.abs(x.s - x.r), 0);
+  const drift = 0.5 * rows.reduce((a, x) => a + Math.abs(x.s - x.w), 0);
+  const hanni = rows.reduce((a, x) => a + x.s * x.p, 0);
+  const U = rows.reduce((a, x) => a + x.s * x.u, 0);
+  const totalHours = vs.reduce((a, v) => a + (+v.hours || 0), 0);
+  return { rows, alignment, drift, hanni, U, totalHours };
+}
+
+/* ---------- rendering helpers ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const pct = x => Math.round(x * 100) + "%";
+const f2 = x => x.toFixed(2);
+
+function go(delta) {
+  state.step = Math.max(0, Math.min(STEPS.length - 1, state.step + delta));
+  saveState(); render(); window.scrollTo({ top: 0, behavior: "smooth" });
+}
+function nav(nextLabel = "next", disabled = false) {
+  return `<div class="nav">
+    <button class="btn" onclick="go(-1)" ${state.step === 0 ? "disabled" : ""}>back</button>
+    <button class="btn primary" onclick="go(1)" ${disabled ? "disabled" : ""}>${nextLabel}</button>
+  </div>`;
+}
+function slider(key, field, min, max, step = 1) {
+  const val = d(key)[field];
+  return `<input type="range" min="${min}" max="${max}" step="${step}" value="${val}"
+    aria-label="${esc(key)} ${field}"
+    oninput="d('${key}').${field}=+this.value; this.closest('.row, .row2').querySelector('[data-o=${field}]') && (this.closest('.row, .row2').querySelector('[data-o=${field}]').textContent=this.value); saveState(); refreshSum && refreshSum()">`;
+}
+let refreshSum = null;
+
+function render() {
+  refreshSum = null;
+  const step = STEPS[state.step];
+  $("#stepLabel").textContent = STEP_NAMES[step];
+  $("#progress").innerHTML = STEPS.map((_, i) => `<span class="${i <= state.step ? "on" : ""}"></span>`).join("");
+  $("#view").innerHTML = VIEWS[step]();
+  if (step === "result") drawResult();
+}
+
+/* ---------- views ---------- */
+const VIEWS = {
+  intro: () => `
+    <h1>what's your utility function?</h1>
+    <p class="sub">hanni and nanni are both 32. same city, similar jobs, 65 hours a week. from the outside they look the same.</p>
+    <div class="quote"><b>hanni works because working makes her happy.<br>nanni works because not working makes her unhappy.</b></div>
+    <p>economics models people as maximizing a utility function: a ranking of what they prefer, subject to constraints. this tool helps you sketch yours.</p>
+    <p>it takes about 10 minutes. six steps:</p>
+    <ol class="sub">
+      <li>pick the variables in your function</li>
+      <li>say how much each one matters</li>
+      <li>find out if you chase it (hanni) or run from its absence (nanni)</li>
+      <li>see where one more unit pays the most</li>
+      <li>compare with what your week actually shows</li>
+      <li>say what you wish you wanted</li>
+    </ol>
+    <p class="muted">everything stays in your browser. nothing is sent anywhere. the maths is illustrative, not a diagnosis.</p>
+    <div class="card" style="margin-top:20px">
+      <label class="muted" for="nm">your first name (optional, shows on the result)</label><br>
+      <input type="text" id="nm" value="${esc(state.name)}" oninput="state.name=this.value; saveState()">
+    </div>
+    ${nav("start")}`,
+
+  variables: () => {
+    const sel = new Set(state.vars.map(v => v.key));
+    const all = [...CATALOG, ...state.vars.filter(v => v.custom)];
+    const n = state.vars.length;
+    return `
+      <h2>what goes into your function?</h2>
+      <p class="sub">pick 3 to 8 things your life seems to run on. U = f(these).</p>
+      <div class="chips">
+        ${all.map(c => `<button class="chip" aria-pressed="${sel.has(c.key)}" onclick="toggleVar('${esc(c.key)}')">${esc(c.label)} <small>${esc(c.sym)}</small></button>`).join("")}
+      </div>
+      <p class="muted">${all.map(c => sel.has(c.key) ? `<b>${esc(c.label)}</b>: ${esc(c.hint || "your own")}` : "").filter(Boolean).join(" · ")}</p>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:16px">
+        <input type="text" id="custom" placeholder="add your own…" maxlength="24" onkeydown="if(event.key==='Enter')addCustom()">
+        <button class="btn" onclick="addCustom()">add</button>
+      </div>
+      <p class="sum ${n < 3 || n > 8 ? "warn" : ""}">${n} selected${n < 3 ? " · pick at least 3" : n > 8 ? " · 8 at most" : ""}</p>
+      ${nav("next", n < 3 || n > 8)}`;
+  },
+
+  stated: () => `
+    <h2>what do you say matters?</h2>
+    <p class="sub">rate each one, 0 to 10. answer like you would in an interview. we normalize the weights so they add up to 100%.</p>
+    <div class="card">
+      ${state.vars.map(v => `
+        <div class="row">
+          <div class="name">${esc(v.label)}<small>${esc(v.hint || "")}</small></div>
+          ${slider(v.key, "stated", 0, 10)}
+          <output data-o="stated">${d(v.key).stated}</output>
+        </div>`).join("")}
+    </div>
+    ${nav()}`,
+
+  pullpush: () => `
+    <h2>hanni or nanni?</h2>
+    <p class="sub">for each variable, two separate questions. they are not opposites. you can score high on both.</p>
+    <div class="quote">
+      <b>pull</b>: how good does getting more of it feel? (hanni: α·ln(1+x))<br>
+      <b>push</b>: how bad does not having enough feel? guilt, anxiety, fear of falling behind. (nanni: −k / (1+x))
+    </div>
+    <div class="card">
+      ${state.vars.map(v => `
+        <div class="row2">
+          <div class="name"><b>${esc(v.label)}</b></div>
+          <div><label>pull: more feels good · <span data-o="pull">${d(v.key).pull}</span></label>${slider(v.key, "pull", 0, 10)}</div>
+          <div><label>push: lack feels bad · <span data-o="push">${d(v.key).push}</span></label>${slider(v.key, "push", 0, 10)}</div>
+        </div>`).join("")}
+    </div>
+    <p class="muted">tip: think of the last time you got more of it. was the feeling joy, or relief?</p>
+    ${nav()}`,
+
+  levels: () => `
+    <h2>how much do you have right now?</h2>
+    <p class="sub">0 = none at all, 10 = more than you could want. this sets where you sit on each curve. the first slice of pizza is worth more than the sixth.</p>
+    <div class="card">
+      ${state.vars.map(v => `
+        <div class="row">
+          <div class="name">${esc(v.label)}</div>
+          ${slider(v.key, "level", 0, 10)}
+          <output data-o="level">${d(v.key).level}</output>
+        </div>`).join("")}
+    </div>
+    ${nav()}`,
+
+  revealed: () => {
+    setTimeout(() => {
+      refreshSum = () => {
+        const t = state.vars.reduce((a, v) => a + (+d(v.key).hours || 0), 0);
+        const el = $("#hsum"); if (el) el.textContent = `${t} hours logged. overlap is fine: one dinner with friends can count for relationships and leisure.`;
+      };
+      refreshSum();
+    });
+    return `
+      <h2>what would an observer conclude?</h2>
+      <p class="sub">think of a typical week in the last month. not an ideal week. roughly how many hours went into each? this is revealed preference: what you choose, not what you say.</p>
+      <div class="card">
+        ${state.vars.map(v => `
+          <div class="row">
+            <div class="name">${esc(v.label)}<small>${esc(v.hint || "")}</small></div>
+            <input type="number" min="0" max="168" step="1" value="${d(v.key).hours}" aria-label="${esc(v.label)} hours per week"
+              oninput="d('${v.key}').hours=Math.max(0,Math.min(168,+this.value||0)); saveState(); refreshSum()">
+            <output>h</output>
+          </div>`).join("")}
+      </div>
+      <p class="sum" id="hsum"></p>
+      ${nav()}`;
+  },
+
+  wished: () => `
+    <h2>what do you wish you wanted?</h2>
+    <p class="sub">philosophers call these second-order desires: desires about your desires. if you could set your own weights, what would they be? not what you think you should say. what you would choose.</p>
+    <div class="card">
+      ${state.vars.map(v => `
+        <div class="row">
+          <div class="name">${esc(v.label)}</div>
+          ${slider(v.key, "wished", 0, 10)}
+          <output data-o="wished">${d(v.key).wished}</output>
+        </div>`).join("")}
+    </div>
+    <p class="muted">your stated answer was the start point. <button class="linkbtn" onclick="state.vars.forEach(v=>d(v.key).wished=d(v.key).stated);saveState();render()">reset to stated</button></p>
+    ${nav("show my function")}`,
+
+  result: () => {
+    const c = compute();
+    const who = state.name ? esc(state.name) + "'s" : "your";
+    return `
+      <h1>${who} utility function</h1>
+      <p class="sub">one illustrative way to write down what you told me. read it as a mirror, not a measurement.</p>
+
+      <div class="card">
+        <div class="eq" id="eq"></div>
+        <p class="muted">each weight is your stated weight. ln(1+x) terms are things you chase (hanni). −w/(1+x) terms are things whose absence you avoid (nanni). the form follows whichever is stronger for that variable.</p>
+      </div>
+
+      <div class="tiles">
+        <div class="tile"><div class="k">say vs do</div><div class="v">${pct(c.alignment)}</div><div class="d">overlap between what you say matters and where your hours go</div></div>
+        <div class="tile"><div class="k">hanni share</div><div class="v">${pct(c.hanni)}</div><div class="d">of your weighted motivation is pull. the other ${pct(1 - c.hanni)} is push.</div></div>
+        <div class="tile"><div class="k">want to change</div><div class="v">${pct(c.drift)}</div><div class="d">of your weight you would move if you could choose your preferences</div></div>
+      </div>
+
+      <div class="card">
+        <h2>stated, revealed, wished</h2>
+        <p class="sub">share of total weight per variable. wide gaps are where to look.</p>
+        <div class="legend" id="legend1"></div>
+        <div id="chart1"></div>
+        <button class="linkbtn" onclick="toggleTable('t1')">show as table</button>
+        <div class="tablewrap" id="t1" hidden></div>
+      </div>
+
+      <div class="card">
+        <h2>where one more unit pays most</h2>
+        <p class="sub">marginal utility right now: stated weight × slope of the curve at your current level. where you have little, one more unit is worth a lot.</p>
+        <div id="chart2"></div>
+      </div>
+
+      <div class="card">
+        <h2>chase or escape</h2>
+        <p class="sub">pull (more feels good) to the right. push (lack feels bad) to the left.</p>
+        <div class="legend"><span><svg width="12" height="12"><rect width="12" height="12" rx="2" fill="var(--push)"/></svg>push · nanni</span><span><svg width="12" height="12"><rect width="12" height="12" rx="2" fill="var(--pull)"/></svg>pull · hanni</span></div>
+        <div id="chart3"></div>
+      </div>
+
+      <div class="card">
+        <h2>what this suggests</h2>
+        <ul class="insights" id="insights"></ul>
+      </div>
+
+      <div class="card">
+        <h2>questions to sit with</h2>
+        <ul class="insights">
+          <li>are you pursuing success because success makes you happy, or because not being successful would make you unhappy?</li>
+          <li>does the extra utility from working more exceed the utility of what you give up? ten hours a week is 2,600 hours over five years.</li>
+          <li>how much of your present are you willing to sacrifice for a future self whose preferences you cannot predict?</li>
+          <li>which past investments are you counting again when you decide about the future?</li>
+          <li>are you choosing your environment because it fits your preferences, or is it teaching you what to prefer?</li>
+          <li><b>is this the function you actually want to maximize?</b></li>
+        </ul>
+      </div>
+
+      <div class="actions">
+        <button class="btn primary" onclick="copySummary()">copy summary</button>
+        <button class="btn" onclick="shareLink()">copy share link</button>
+        <button class="btn" onclick="window.print()">print / pdf</button>
+        <button class="btn" onclick="state.step=1;saveState();render()">edit answers</button>
+        <button class="btn" onclick="if(confirm('clear all answers?')){state=freshState();location.hash='';saveState();render()}">start over</button>
+        <span class="toast" id="toast"></span>
+      </div>
+      <p class="muted" style="margin-top:24px">based on marius busen, "what's your utility function?"</p>`;
+  },
+};
+
+function toggleVar(key) {
+  const i = state.vars.findIndex(v => v.key === key);
+  if (i >= 0) state.vars.splice(i, 1);
+  else if (state.vars.length < 8) {
+    const c = CATALOG.find(c => c.key === key) || state.customs?.[key];
+    if (c) state.vars.push({ ...c, custom: !CATALOG.find(x => x.key === key) });
+  }
+  saveState(); render();
+}
+function addCustom() {
+  const el = $("#custom"); const label = el.value.trim().toLowerCase();
+  if (!label || state.vars.length >= 8) return;
+  const key = "c_" + label.replace(/[^a-z0-9]+/g, "_").slice(0, 20);
+  if (state.vars.find(v => v.key === key)) return;
+  const v = { key, sym: label.slice(0, 2).replace(/^./, ch => ch.toUpperCase()), label, hint: "", custom: true };
+  state.customs = { ...(state.customs || {}), [key]: v };
+  state.vars.push(v); saveState(); render();
+}
+function toggleTable(id) { const el = document.getElementById(id); el.hidden = !el.hidden; }
+
+/* ---------- charts ---------- */
+const tip = $("#tip");
+function bindTips(root) {
+  root.querySelectorAll("[data-tip]").forEach(el => {
+    el.addEventListener("mousemove", e => {
+      tip.innerHTML = el.getAttribute("data-tip"); tip.style.opacity = 1;
+      const x = Math.min(e.clientX + 14, window.innerWidth - tip.offsetWidth - 8);
+      tip.style.left = x + "px"; tip.style.top = (e.clientY + 14) + "px";
+    });
+    el.addEventListener("mouseleave", () => (tip.style.opacity = 0));
+  });
+}
+function width(el) { return Math.max(300, el.clientWidth); }
+const SHAPES = {
+  stated:   (x, y, c) => `<circle cx="${x}" cy="${y}" r="5.5" fill="${c}" stroke="var(--surface-1)" stroke-width="2"/>`,
+  revealed: (x, y, c) => `<rect x="${x - 5.5}" y="${y - 5.5}" width="11" height="11" rx="2" fill="${c}" stroke="var(--surface-1)" stroke-width="2"/>`,
+  wished:   (x, y, c) => `<path d="M${x} ${y - 7} L${x + 7} ${y} L${x} ${y + 7} L${x - 7} ${y} Z" fill="${c}" stroke="var(--surface-1)" stroke-width="2"/>`,
+};
+const SERIES = [
+  { k: "s", name: "stated", color: "var(--series-1)", shape: "stated" },
+  { k: "r", name: "revealed", color: "var(--series-2)", shape: "revealed" },
+  { k: "w", name: "wished", color: "var(--series-3)", shape: "wished" },
+];
+
+function drawResult() {
+  const c = compute();
+  const rows = c.rows;
+
+  /* equation */
+  const terms = rows.map((x, i) => {
+    const sym = `<i>${esc(x.sym)}</i>`;
+    const t = x.p >= 0.5 ? `${f2(x.s)}·ln(1+${sym})` : `${f2(x.s)}/(1+${sym})`;
+    const sign = x.p >= 0.5 ? (i === 0 ? "" : " + ") : (i === 0 ? "−" : " − ");
+    return `<span class="t">${sign}${t}</span>`;
+  }).join(" ");
+  $("#eq").innerHTML = `<i>U</i> = ${terms}`;
+
+  /* chart 1: dot plot */
+  $("#legend1").innerHTML = SERIES.map(s => `<span><svg width="16" height="16">${SHAPES[s.shape](8, 8, s.color)}</svg>${s.name}</span>`).join("");
+  const el1 = $("#chart1"); const W = width(el1); const L = 120, R = 24, rowH = 36, T = 8;
+  const max1 = Math.max(0.1, ...rows.flatMap(x => [x.s, x.r, x.w]));
+  const xMax = Math.ceil(max1 * 10) / 10;
+  const sx = v => L + (v / xMax) * (W - L - R);
+  const H1 = T + rows.length * rowH + 24;
+  let g = "";
+  for (let t = 0; t <= xMax + 1e-9; t += 0.1) {
+    g += `<line x1="${sx(t)}" x2="${sx(t)}" y1="${T}" y2="${H1 - 22}" stroke="var(--grid)" stroke-width="1"/>
+          <text class="tick" x="${sx(t)}" y="${H1 - 6}" text-anchor="middle">${Math.round(t * 100)}%</text>`;
+  }
+  rows.forEach((x, i) => {
+    const y = T + i * rowH + rowH / 2;
+    const vals = SERIES.map(s => x[s.k]);
+    g += `<text x="${L - 12}" y="${y + 4}" text-anchor="end">${esc(x.label)}</text>
+          <line x1="${sx(Math.min(...vals))}" x2="${sx(Math.max(...vals))}" y1="${y}" y2="${y}" stroke="var(--axis)" stroke-width="2"/>`;
+    SERIES.forEach(s => {
+      g += `<g data-tip="<b>${esc(x.label)}</b><br>${s.name}: ${pct(x[s.k])}">
+              <rect x="${sx(x[s.k]) - 12}" y="${y - 14}" width="24" height="28" fill="transparent"/>
+              ${SHAPES[s.shape](sx(x[s.k]), y, s.color)}</g>`;
+    });
+  });
+  el1.innerHTML = `<svg width="${W}" height="${H1}" role="img" aria-label="stated, revealed and wished weights per variable">${g}</svg>`;
+  $("#t1").innerHTML = `<table><tr><th>variable</th><th>stated</th><th>revealed</th><th>wished</th><th>hours/wk</th><th>pull</th><th>push</th><th>level</th></tr>
+    ${rows.map(x => `<tr><td>${esc(x.label)}</td><td>${pct(x.s)}</td><td>${pct(x.r)}</td><td>${pct(x.w)}</td><td>${x.hours}</td><td>${x.pull}</td><td>${x.push}</td><td>${x.level}</td></tr>`).join("")}</table>`;
+
+  /* chart 2: marginal utility bars, sorted, single series */
+  const el2 = $("#chart2"); const W2 = width(el2);
+  const sorted = [...rows].sort((a, b) => b.muShare - a.muShare);
+  const max2 = Math.max(...sorted.map(x => x.muShare), 0.01);
+  const sx2 = v => (v / max2) * (W2 - L - 56);
+  const barH = 18, gap2 = 12;
+  const H2 = sorted.length * (barH + gap2) + 4;
+  let g2 = "";
+  sorted.forEach((x, i) => {
+    const y = i * (barH + gap2) + 2; const w = Math.max(2, sx2(x.muShare));
+    const op = i === 0 ? 1 : 0.55;
+    g2 += `<g data-tip="<b>${esc(x.label)}</b><br>share of marginal utility: ${pct(x.muShare)}<br>current level ${x.level}/10 · stated weight ${pct(x.s)}">
+      <rect x="${L}" y="${y - 4}" width="${W2 - L}" height="${barH + 8}" fill="transparent"/>
+      <text x="${L - 12}" y="${y + barH / 2 + 4}" text-anchor="end">${esc(x.label)}</text>
+      <path d="M${L} ${y} h${w - 4} a4 4 0 0 1 4 4 v${barH - 8} a4 4 0 0 1 -4 4 h${-(w - 4)} Z" fill="var(--series-1)" opacity="${op}"/>
+      <text x="${L + w + 8}" y="${y + barH / 2 + 4}" style="fill:var(--text-primary)">${pct(x.muShare)}</text></g>`;
+  });
+  g2 += `<line x1="${L}" x2="${L}" y1="0" y2="${H2}" stroke="var(--axis)" stroke-width="1"/>`;
+  el2.innerHTML = `<svg width="${W2}" height="${H2}" role="img" aria-label="marginal utility by variable">${g2}</svg>`;
+
+  /* chart 3: diverging pull/push */
+  const el3 = $("#chart3"); const W3 = width(el3);
+  const mid = L + (W3 - L - 16) / 2; const half = (W3 - L - 16) / 2 - 4;
+  const H3 = rows.length * (barH + gap2) + 22;
+  let g3 = `<line x1="${mid}" x2="${mid}" y1="0" y2="${H3 - 20}" stroke="var(--axis)" stroke-width="1"/>
+            <text class="tick" x="${mid - half}" y="${H3 - 4}">10</text><text class="tick" x="${mid}" y="${H3 - 4}" text-anchor="middle">0</text>
+            <text class="tick" x="${mid + half}" y="${H3 - 4}" text-anchor="end">10</text>`;
+  rows.forEach((x, i) => {
+    const y = i * (barH + gap2) + 2;
+    const wp = (x.pull / 10) * half, wn = (x.push / 10) * half;
+    g3 += `<g data-tip="<b>${esc(x.label)}</b><br>pull ${x.pull}/10 · push ${x.push}/10<br>${x.p >= 0.5 ? "mostly chasing (hanni)" : "mostly escaping (nanni)"}">
+      <rect x="${L}" y="${y - 4}" width="${W3 - L}" height="${barH + 8}" fill="transparent"/>
+      <text x="${L - 12}" y="${y + barH / 2 + 4}" text-anchor="end">${esc(x.label)}</text>
+      ${wn > 0 ? `<path d="M${mid - 1} ${y} h${-(Math.max(4, wn) - 4)} a4 4 0 0 0 -4 4 v${barH - 8} a4 4 0 0 0 4 4 h${Math.max(4, wn) - 4} Z" fill="var(--push)"/>` : ""}
+      ${wp > 0 ? `<path d="M${mid + 1} ${y} h${Math.max(4, wp) - 4} a4 4 0 0 1 4 4 v${barH - 8} a4 4 0 0 1 -4 4 h${-(Math.max(4, wp) - 4)} Z" fill="var(--pull)"/>` : ""}
+    </g>`;
+  });
+  el3.innerHTML = `<svg width="${W3}" height="${H3}" role="img" aria-label="pull versus push per variable">${g3}</svg>`;
+
+  bindTips($("#view"));
+  $("#insights").innerHTML = insights(c).map(t => `<li>${t}</li>`).join("");
+}
+
+/* ---------- insights ---------- */
+function insights(c) {
+  const out = [];
+  const rows = c.rows;
+  const byGap = [...rows].sort((a, b) => (b.r - b.s) - (a.r - a.s));
+  const over = byGap[0], under = byGap[byGap.length - 1];
+  if (over.r - over.s > 0.05)
+    out.push(`<b>${esc(over.label)}</b> gets ${pct(over.r)} of your hours but only ${pct(over.s)} of your stated weight. an observer would say you value it more than you claim. or habit, fear or constraint is choosing for you.`);
+  if (under.s - under.r > 0.05)
+    out.push(`<b>${esc(under.label)}</b> is ${pct(under.s)} of what you say matters, but gets ${pct(under.r)} of your hours. what you say and what you do have drifted apart.`);
+  if (c.alignment >= 0.85) out.push(`your week and your words match well (${pct(c.alignment)}). the harder question is whether these are the preferences you want.`);
+
+  const nannis = rows.filter(x => x.p < 0.5 && x.s >= 0.1).sort((a, b) => b.s - a.s);
+  if (nannis.length)
+    out.push(`you mostly run from a lack of ${nannis.map(x => `<b>${esc(x.label)}</b>`).join(", ")}. more of it brings relief, not joy. the finish line tends to move.`);
+  else out.push(`you mostly chase what you value instead of running from its absence. that is the hanni pattern. watch for diminishing returns.`);
+
+  const top = [...rows].sort((a, b) => b.muShare - a.muShare)[0];
+  const sat = rows.filter(x => x.level >= 8 && x.r >= Math.max(...rows.map(y => y.r)) - 1e-9);
+  out.push(`your next hour is worth most in <b>${esc(top.label)}</b> (${pct(top.muShare)} of marginal utility). you are at ${top.level}/10 there.`);
+  if (sat.length)
+    out.push(`<b>${esc(sat[0].label)}</b> gets the most hours, and you rate your level at ${sat[0].level}/10. the fourth promotion may make you less happy than the first.`);
+
+  const moves = [...rows].sort((a, b) => (b.w - b.s) - (a.w - a.s));
+  const up = moves[0], down = moves[moves.length - 1];
+  if (c.drift > 0.05)
+    out.push(`if you could choose, you would care more about <b>${esc(up.label)}</b> (${pct(up.s)} → ${pct(up.w)}) and less about <b>${esc(down.label)}</b> (${pct(down.s)} → ${pct(down.w)}). you are maximizing a function you wish were different.`);
+  else out.push(`you would barely change your weights. you seem to endorse your own preferences.`);
+
+  const wishVsDo = 1 - 0.5 * rows.reduce((a, x) => a + Math.abs(x.w - x.r), 0);
+  out.push(`your current week matches ${pct(wishVsDo)} of the function you wish you had.`);
+  return out;
+}
+
+/* ---------- export ---------- */
+function summaryText() {
+  const c = compute();
+  const lines = [`${state.name ? state.name + "'s" : "my"} utility function`, ""];
+  lines.push("U = " + c.rows.map((x, i) => (x.p >= 0.5 ? (i ? " + " : "") + `${f2(x.s)}·ln(1+${x.sym})` : (i ? " − " : "−") + `${f2(x.s)}/(1+${x.sym})`)).join(""));
+  lines.push("", `say vs do: ${pct(c.alignment)} · hanni share: ${pct(c.hanni)} · want to change: ${pct(c.drift)}`, "");
+  lines.push("variable | stated | revealed | wished | pull/push | level");
+  c.rows.forEach(x => lines.push(`${x.label} | ${pct(x.s)} | ${pct(x.r)} | ${pct(x.w)} | ${x.pull}/${x.push} | ${x.level}/10`));
+  lines.push("");
+  insights(c).forEach(t => lines.push("- " + t.replace(/<[^>]+>/g, "")));
+  return lines.join("\n");
+}
+function flash(msg) { const t = $("#toast"); if (t) { t.textContent = msg; setTimeout(() => (t.textContent = ""), 2500); } }
+function copyText(s, msg) {
+  (navigator.clipboard ? navigator.clipboard.writeText(s) : Promise.reject()).then(() => flash(msg), () => { prompt("copy:", s); });
+}
+function copySummary() { copyText(summaryText(), "summary copied"); }
+function shareLink() {
+  const enc = btoa(unescape(encodeURIComponent(JSON.stringify({ ...state, step: STEPS.length - 1 }))));
+  copyText(location.href.split("#")[0] + "#" + enc, "link copied. it contains your answers.");
+}
+
+let rT; window.addEventListener("resize", () => { clearTimeout(rT); rT = setTimeout(() => STEPS[state.step] === "result" && drawResult(), 150); });
+render();
+</script>
+</body>
+</html>
