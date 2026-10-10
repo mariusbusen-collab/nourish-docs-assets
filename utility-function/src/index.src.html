@@ -265,6 +265,7 @@ aside.panel { position: sticky; top: 28px; align-self: start; max-height: calc(1
 .badge.on { border-style: solid; border-color: var(--hanni); color: var(--ink); background: var(--tint-hanni); }
 .badge.on .g { background: var(--hanni); color: #fff; }
 .fab { display: none; position: fixed; bottom: calc(16px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); z-index: 51; border-radius: 999px; padding: 11px 18px 11px 14px; background: var(--ink); color: var(--surface-1); border: 0; cursor: pointer; box-shadow: var(--shadow-lift); font-size: 14px; align-items: center; gap: 8px; }
+.fab { white-space: nowrap; font-size: 14px; }
 .fab .mini { font: italic 400 14px/1 var(--serif); opacity: .75; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @media (max-width: 1000px) { .fab.show { display: inline-flex; } }
 
