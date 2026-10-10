@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>margin · a design system for marius busen</title>
+<script>try{var t=localStorage.getItem("m-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="components.css">
+<style>
+/* style-guide-only helpers (sg-) */
+.sg-cover { padding-block: var(--space-9) var(--space-8); display: grid; grid-template-columns: 1fr auto; gap: var(--space-6); align-items: end; }
+.sg-cover .chars { display: flex; align-items: flex-end; gap: 0; }
+.sg-cover .chars [data-art] { width: 130px; display: block; }
+@media (max-width: 760px) { .sg-cover { grid-template-columns: 1fr; } .sg-cover .chars [data-art] { width: 100px; } }
+.sg-toc { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-6); }
+.sg-h { display: grid; grid-template-columns: 4rem 1fr; gap: var(--space-4); align-items: baseline; margin-bottom: var(--space-7); }
+.sg-h .n { font: italic 300 var(--step-4)/1 var(--font-display); color: var(--accent); }
+.sg-h p { max-width: 36em; color: var(--text-2); margin-top: var(--space-3); }
+@media (max-width: 600px) { .sg-h { grid-template-columns: 1fr; gap: 0; } }
+.sg-principles { counter-reset: p; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-6) var(--space-5); list-style: none; padding: 0; }
+.sg-principles li { counter-increment: p; border-top: 1px solid var(--text); padding-top: var(--space-3); }
+.sg-principles li::before { content: "0" counter(p); font: 400 var(--step--2)/1 var(--font-mono); color: var(--text-3); display: block; margin-bottom: var(--space-3); }
+.sg-principles b { font: 400 var(--step-2)/1.15 var(--font-display); display: block; margin-bottom: var(--space-2); letter-spacing: -0.01em; }
+.sg-principles span { color: var(--text-2); font-size: var(--step--1); }
+.sg-swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--space-4); }
+.sg-sw { border: 0; background: none; padding: 0; text-align: left; cursor: copy; }
+.sg-sw .chip { height: 84px; border-radius: var(--radius-md); border: 1px solid var(--line); transition: transform var(--dur-3) var(--ease-spring); }
+.sg-sw:hover .chip { transform: translateY(-3px) rotate(-1deg); }
+.sg-sw .nm { font: 500 var(--step--1)/1.3 var(--font-ui); margin-top: var(--space-2); display: block; }
+.sg-sw .hx { display: block; }
+.sg-row { display: grid; grid-template-columns: 11rem 1fr; gap: var(--space-5); align-items: baseline; padding-block: var(--space-5); border-top: 1px solid var(--line); }
+.sg-row:last-child { border-bottom: 1px solid var(--line); }
+@media (max-width: 700px) { .sg-row { grid-template-columns: 1fr; gap: var(--space-2); } }
+.sg-space { display: flex; align-items: center; gap: var(--space-4); padding: 6px 0; }
+.sg-space i { display: block; height: 12px; background: var(--accent); border-radius: 2px; opacity: .85; }
+.sg-space .m-meta { width: 8rem; }
+.sg-ease { display: grid; grid-template-columns: 9rem 1fr; gap: var(--space-4); align-items: center; padding: 10px 0; border-top: 1px solid var(--line); }
+.sg-ease .track { position: relative; height: 36px; background: var(--surface-sunk); border-radius: var(--radius-pill); }
+.sg-ease .ball { position: absolute; left: 4px; top: 4px; width: 28px; height: 28px; border-radius: 50%; background: var(--text); transition: left 900ms var(--e); }
+.sg-motion:hover .ball, .sg-motion.is-play .ball { left: calc(100% - 32px); }
+.sg-demo { display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: center; }
+.sg-panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: var(--space-6); }
+.sg-two { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); }
+@media (max-width: 860px) { .sg-two { grid-template-columns: 1fr; } }
+.sg-code { font: 400 var(--step--1)/1.6 var(--font-mono); background: var(--surface-sunk); border-radius: var(--radius-md); padding: var(--space-5); overflow-x: auto; white-space: pre; color: var(--text-2); }
+.sg-shadow { width: 140px; height: 90px; border-radius: var(--radius-md); background: var(--surface); display: grid; place-items: center; }
+.sg-templates { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--space-5); }
+.sg-templates a { text-decoration: none; }
+.sg-templates .m-ph { --ratio: 4 / 3; border-radius: var(--radius-md); margin-bottom: var(--space-3); }
+</style>
+</head>
+<body class="m-grain">
+<div class="m-page">
+
+  <nav class="m-nav" aria-label="main">
+    <a class="m-wordmark" href="index.html">margin <span class="dot"></span></a>
+    <ul>
+      <li><a href="#colour">colour</a></li>
+      <li><a href="#type">type</a></li>
+      <li><a href="#components">components</a></li>
+      <li><a href="#templates">templates</a></li>
+      <li><button class="m-theme" data-theme-toggle></button></li>
+    </ul>
+  </nav>
+
+  <header class="sg-cover">
+    <div>
+      <div class="m-eyebrow">design system · v0.1 · october 2026</div>
+      <h1 class="m-hero" style="margin-top:var(--space-4)">life at the <em class="m-mark-loop">margin</em></h1>
+      <p class="m-lead" style="max-width:30em;margin-top:var(--space-5)">a design system for marius busen: essays, poems and small things made with care. paper and ink, lots of room, and a few small delights in the margins.</p>
+    </div>
+    <div class="chars" aria-hidden="true"><span data-art="hanni"></span><span data-art="nanni"></span></div>
+  </header>
+
+  <!-- 0 principles -->
+  <section class="m-section" style="padding-top:var(--space-6)">
+    <ol class="sg-principles" data-stagger="80">
+      <li class="m-reveal"><b>paper, not screen</b><span>warm surfaces, a little grain, ink instead of black. it should feel like an object you hold.</span></li>
+      <li class="m-reveal"><b>words first</b><span>type does the work. images and colour serve the text, never the other way round.</span></li>
+      <li class="m-reveal"><b>one accent, rarely</b><span>terracotta marks what matters: a link, a number, a note. if everything is red, nothing is.</span></li>
+      <li class="m-reveal"><b>delight at the margin</b><span>a hand-drawn underline, a tilt, a spring. small, optional, never in the way of reading.</span></li>
+      <li class="m-reveal"><b>calm motion</b><span>things settle; they don't bounce around. everything respects reduced motion.</span></li>
+    </ol>
+  </section>
+
+  <!-- 1 colour -->
+  <section class="m-section" id="colour">
+    <div class="sg-h"><span class="n">1</span><div><h2>colour</h2><p>paper and ink carry 95% of every page. the earth hues are for marks, charts and illustration. click a swatch to copy its token.</p></div></div>
+
+    <h3 class="m-eyebrow" style="margin-bottom:var(--space-4)">paper & ink · light</h3>
+    <div class="sg-swatches" data-swatches="paper-50 paper-100 paper-200 paper-300 paper-400 ink-500 ink-600 ink-700 ink-900"></div>
+    <h3 class="m-eyebrow" style="margin:var(--space-7) 0 var(--space-4)">night & moon · dark</h3>
+    <div class="sg-swatches" data-swatches="night-900 night-800 night-700 night-600 night-500 night-400 moon-500 moon-300 moon-100"></div>
+    <h3 class="m-eyebrow" style="margin:var(--space-7) 0 var(--space-4)">earth hues · light step / dark step</h3>
+    <div class="sg-swatches" data-swatches="terracotta-l terracotta-d ochre-l ochre-d dusk-l dusk-d lake-l lake-d pine-l pine-d"></div>
+    <h3 class="m-eyebrow" style="margin:var(--space-7) 0 var(--space-4)">stickers · illustration fills</h3>
+    <div class="sg-swatches" data-swatches="sticker-sun sticker-clay sticker-sage sticker-sky sticker-lilac"></div>
+
+    <div class="sg-two" style="margin-top:var(--space-8)">
+      <div>
+        <h3 style="margin-bottom:var(--space-3)">semantic roles</h3>
+        <p class="m-small m-muted" style="margin-bottom:var(--space-4)">components only ever use these. they switch for dark mode.</p>
+        <table class="m-small" style="width:100%;border-collapse:collapse">
+          <tbody id="roles"></tbody>
+        </table>
+      </div>
+      <div>
+        <h3 style="margin-bottom:var(--space-3)">data & contrast</h3>
+        <p class="m-small" style="color:var(--text-2)">chart colours are checked with a colour-vision-deficiency validator in both modes. <b>data-1…3</b> (lake, terracotta, pine) stay distinct in any combination, so scatter plots are safe. <b>pos / neg</b> (ochre, dusk) form a diverging pair with a neutral middle.</p>
+        <div class="m-cluster" style="margin:var(--space-4) 0 var(--space-6)">
+          <span class="m-tag"><span class="sw" style="color:var(--data-1)"></span>data-1</span><span class="m-tag"><span class="sw" style="color:var(--data-2)"></span>data-2</span><span class="m-tag"><span class="sw" style="color:var(--data-3)"></span>data-3</span><span class="m-tag"><span class="sw" style="color:var(--data-pos)"></span>pos</span><span class="m-tag"><span class="sw" style="color:var(--data-neg)"></span>neg</span>
+        </div>
+        <p class="m-small" style="color:var(--text-2)">text contrast on paper-100: text 13.2:1 · text-2 6.3:1 · text-3 4.7:1 · accent-text 4.9:1. ink-500 is for rules and axes only; it fails as text.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 type -->
+  <section class="m-section" id="type">
+    <div class="sg-h"><span class="n">2</span><div><h2>type</h2><p><b>Fraunces</b> for display and reading: a soft old-style serif with optical sizes, so it works at 118px and at 19px. <b>Inter</b> for interface. <b>IBM Plex Mono</b> for dates, numbers and labels. all open-licensed and self-hosted.</p></div></div>
+    <div class="sg-row"><span class="m-meta">m-hero · step-6</span><p class="m-hero">at the <em>margin</em></p></div>
+    <div class="sg-row"><span class="m-meta">m-display · step-5</span><p class="m-display">what's your <em>utility function?</em></p></div>
+    <div class="sg-row"><span class="m-meta">h1 · step-4</span><h1>the price of one more</h1></div>
+    <div class="sg-row"><span class="m-meta">h2 · step-3</span><h2>everything has an opportunity cost</h2></div>
+    <div class="sg-row"><span class="m-meta">h3 · step-2</span><h3>the future version of yourself</h3></div>
+    <div class="sg-row"><span class="m-meta">m-lead · step-1</span><p class="m-lead">hanni works because working makes her happy. nanni works because not working makes her unhappy.</p></div>
+    <div class="sg-row"><span class="m-meta">m-prose · step-1 · reading</span><div class="m-prose"><p>the first slice when you're starving is wonderful. the second is still pretty good. the third is enjoyable. by the sixth, you're probably starting to question your decisions. the marginal utility of another slice decreases as you consume more.</p></div></div>
+    <div class="sg-row"><span class="m-meta">m-body · step-0 · ui</span><p class="m-body" style="max-width:36em">interface text, buttons, forms and captions use inter. it stays quiet so the serif can speak.</p></div>
+    <div class="sg-row"><span class="m-meta">m-caption · step--1</span><p class="m-caption">figure 2 — marginal utility of one more achievement (schematic)</p></div>
+    <div class="sg-row"><span class="m-meta">m-eyebrow / m-meta</span><div class="m-stack" style="--stack:8px"><span class="m-eyebrow">essay · 12 min read</span><span class="m-meta">09.10.2026 · berlin</span></div></div>
+    <div class="sg-row"><span class="m-meta">m-italic</span><p class="m-italic" style="font-size:var(--step-2)">perhaps life isn't an optimization problem.</p></div>
+  </section>
+
+  <!-- 3 space, shape, motion -->
+  <section class="m-section">
+    <div class="sg-h"><span class="n">3</span><div><h2>space, shape, motion</h2><p>a 4px base and generous steps. round corners are soft but not bubbly. motion eases out and settles; one spring curve for playful moments, in pure css.</p></div></div>
+    <div class="sg-two">
+      <div>
+        <h3 class="m-eyebrow" style="margin-bottom:var(--space-4)">space</h3>
+        <div id="spaces"></div>
+      </div>
+      <div class="m-stack" style="--stack:var(--space-6)">
+        <div><h3 class="m-eyebrow" style="margin-bottom:var(--space-4)">radius</h3>
+          <div class="m-cluster" style="--cluster:var(--space-4)">
+            <div class="m-stack" style="--stack:6px"><div style="width:64px;height:64px;background:var(--surface-sunk);border-radius:var(--radius-sm)"></div><span class="m-meta">sm 6</span></div>
+            <div class="m-stack" style="--stack:6px"><div style="width:64px;height:64px;background:var(--surface-sunk);border-radius:var(--radius-md)"></div><span class="m-meta">md 12</span></div>
+            <div class="m-stack" style="--stack:6px"><div style="width:64px;height:64px;background:var(--surface-sunk);border-radius:var(--radius-lg)"></div><span class="m-meta">lg 20</span></div>
+            <div class="m-stack" style="--stack:6px"><div style="width:96px;height:64px;background:var(--surface-sunk);border-radius:var(--radius-pill)"></div><span class="m-meta">pill</span></div>
+          </div></div>
+        <div><h3 class="m-eyebrow" style="margin-bottom:var(--space-4)">elevation</h3>
+          <div class="m-cluster" style="--cluster:var(--space-5)"><div class="sg-shadow" style="box-shadow:var(--shadow-1)"><span class="m-meta">shadow-1</span></div><div class="sg-shadow" style="box-shadow:var(--shadow-2)"><span class="m-meta">shadow-2</span></div></div></div>
+      </div>
+    </div>
+    <div class="sg-motion" style="margin-top:var(--space-7)" tabindex="0" aria-label="easing demo, hover to play">
+      <h3 class="m-eyebrow" style="margin-bottom:var(--space-3)">easing · hover to play</h3>
+      <div class="sg-ease" style="--e:var(--ease-out)"><span class="m-meta">ease-out · default</span><div class="track"><span class="ball"></span></div></div>
+      <div class="sg-ease" style="--e:var(--ease-spring)"><span class="m-meta">ease-spring · playful</span><div class="track"><span class="ball"></span></div></div>
+      <div class="sg-ease" style="--e:var(--ease-inout)"><span class="m-meta">ease-inout · page</span><div class="track"><span class="ball"></span></div></div>
+      <p class="m-meta" style="margin-top:var(--space-3)">durations: dur-1 120ms press · dur-2 220ms hover · dur-3 420ms entrance · dur-4 800ms reveal</p>
+    </div>
+  </section>
+
+  <!-- 4 marks -->
+  <section class="m-section">
+    <div class="sg-h"><span class="n">4</span><div><h2>marks & characters</h2><p>hand-drawn marks, drawn when they scroll into view. use one per screen, at most. the characters come from the utility-function essay: hanni chases, nanni escapes.</p></div></div>
+    <div class="sg-two">
+      <div class="m-stack" style="--stack:var(--space-6)">
+        <p class="m-h2">a word worth <span class="m-mark-under">underlining</span></p>
+        <p class="m-h2">one <span class="m-mark-loop">circled</span> idea</p>
+        <p class="m-h2">a <span class="m-mark-swash">highlighted</span> phrase</p>
+        <div class="m-asterism" style="margin:0;text-align:left">* * *</div>
+        <div class="m-prose" style="max-width:none"><hr style="margin:0"></div>
+      </div>
+      <div class="m-cluster" style="--cluster:var(--space-6);align-items:flex-end;justify-content:center">
+        <div class="m-stack" style="--stack:4px;align-items:center"><span data-art="hanni" style="width:150px;display:block"></span><span class="m-italic">hanni</span></div>
+        <div class="m-stack" style="--stack:4px;align-items:center"><span data-art="nanni" style="width:150px;display:block"></span><span class="m-italic">nanni</span></div>
+        <div class="m-stack" style="--stack:4px;align-items:center"><span data-art="star" style="display:block"></span><span class="m-meta">star</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 components -->
+  <section class="m-section" id="components">
+    <div class="sg-h"><span class="n">5</span><div><h2>components</h2><p>everything starts with <code class="m-meta">m-</code>. states start with <code class="m-meta">is-</code>. no framework needed.</p></div></div>
+
+    <div class="sg-row"><span class="m-meta">buttons</span><div class="sg-demo"><a class="m-btn is-primary" href="#">read the essay <span class="arr">→</span></a><a class="m-btn" href="#">all writing</a><a class="m-btn is-ghost" href="#">← back</a><button class="m-btn" disabled>disabled</button></div></div>
+    <div class="sg-row"><span class="m-meta">tags & filters</span><div class="m-stack" style="--stack:var(--space-4)">
+      <div class="m-cluster"><span class="m-tag">essay</span><span class="m-tag">poem</span><span class="m-tag is-on">project</span><span class="m-tag"><span class="sw" style="color:var(--accent)"></span>new</span><span class="m-kbd">⌘ K</span></div>
+      <div class="m-seg" role="group" aria-label="example"><button aria-pressed="true">all</button><button aria-pressed="false">essays</button><button aria-pressed="false">poems</button></div></div></div>
+    <div class="sg-row"><span class="m-meta">index · hover me</span>
+      <ul class="m-index is-dimming">
+        <li><a href="templates/essay.html" data-preview="sun"><span class="yr">2026</span><span class="ttl">what's your utility function?</span><span class="kind">essay</span><span class="go">→</span></a></li>
+        <li><a href="templates/project.html" data-preview="clay"><span class="yr">2026</span><span class="ttl">the utility function game</span><span class="kind">project</span><span class="go">→</span></a></li>
+        <li><a href="templates/poem.html" data-preview="dusk"><span class="yr">2026</span><span class="ttl">[TK] first poem</span><span class="kind">poem</span><span class="go">→</span></a></li>
+      </ul></div>
+    <div class="sg-row"><span class="m-meta">cards</span><div class="sg-two" style="gap:var(--space-5)">
+      <a class="m-card is-link" href="#"><div class="m-eyebrow">essay</div><h3 style="margin:var(--space-3) 0 var(--space-2)">the price of one more</h3><p class="m-small" style="color:var(--text-2)">why the fourth promotion makes you less happy than the first.</p></a>
+      <div class="m-deck"><div class="m-card"><div class="m-eyebrow">deck</div><p class="m-h3" style="margin-top:var(--space-3)">a card on a stack, for one-at-a-time flows.</p></div></div></div></div>
+    <div class="sg-row"><span class="m-meta">figures</span><div class="sg-two" style="gap:var(--space-6);align-items:start">
+      <figure class="m-figure"><div class="m-ph" data-tone="sun"><span class="m-ph-label">placeholder · 4:3</span></div><figcaption><span class="n">fig. 1</span><span>a plain figure with a numbered caption.</span></figcaption></figure>
+      <figure class="m-figure is-print is-tape" style="--tilt:2deg;max-width:300px;justify-self:center"><div class="m-ph" data-tone="clay" style="--ratio:1"></div><figcaption>a printed photo, taped in. it straightens on hover.</figcaption></figure></div></div>
+    <div class="sg-row"><span class="m-meta">placeholders</span><div class="m-cluster" style="--cluster:var(--space-3)">
+      <div class="m-ph" data-tone="sun" style="width:120px;border-radius:var(--radius-md)"></div><div class="m-ph" data-tone="clay" style="width:120px;border-radius:var(--radius-md)"></div><div class="m-ph" data-tone="sage" style="width:120px;border-radius:var(--radius-md)"></div><div class="m-ph" data-tone="dusk" style="width:120px;border-radius:var(--radius-md)"></div><div class="m-ph" data-tone="sky" style="width:120px;border-radius:var(--radius-md)"></div></div></div>
+    <div class="sg-row"><span class="m-meta">stats</span><div class="m-cluster" style="--cluster:var(--space-8)">
+      <div class="m-stat"><div class="k">ten hours a week</div><div class="v">2,600</div><div class="d">hours over five years. time that could have gone somewhere else.</div></div>
+      <div class="m-stat"><div class="k">discount factor</div><div class="v">δ 0.9</div><div class="d">100 units in ten years are worth 35 today.</div></div></div></div>
+    <div class="sg-row"><span class="m-meta">quotes</span><div class="m-stack" style="--stack:var(--space-6)">
+      <blockquote class="m-pullquote">something can have been the right decision in the past and no longer be the right decision today.<cite>what's your utility function? · §6</cite></blockquote>
+      <blockquote class="m-quote">hanni works because working makes her happy. nanni works because not working makes her unhappy.</blockquote></div></div>
+    <div class="sg-row"><span class="m-meta">fields</span><div class="sg-two" style="gap:var(--space-5)">
+      <div class="m-stack" style="--stack:var(--space-5)">
+        <div class="m-field"><label for="f1">your name</label><input class="m-input" id="f1" placeholder="hanni"></div>
+        <div class="m-field"><label for="f2">one line</label><input class="m-input is-line" id="f2" placeholder="i want to want…"></div>
+        <label class="m-check"><input type="checkbox" checked> send me new essays</label>
+      </div>
+      <div class="m-field"><label for="f3">lined paper</label><textarea class="m-textarea is-lined" id="f3" placeholder="write here…"></textarea></div></div></div>
+    <div class="sg-row"><span class="m-meta">small things</span><div class="sg-demo">
+      <button class="m-theme" data-theme-toggle></button>
+      <span class="m-clock" data-tz="Europe/Berlin" data-place="berlin"></span>
+      <button class="m-btn m-tip" data-tip="a tooltip, in mono" type="button">hover for tooltip</button>
+      <button class="m-btn" type="button" onclick="Margin.toast('a toast, on paper')">show toast</button></div></div>
+  </section>
+
+  <!-- 6 reading -->
+  <section class="m-section">
+    <div class="sg-h"><span class="n">6</span><div><h2>reading</h2><p>essays get a 34em measure, old-style numerals and notes in the margin. poems get more air, hanging lines and stanza breaks.</p></div></div>
+    <div class="sg-two" style="gap:var(--space-8)">
+      <article class="m-prose m-with-margin" style="max-width:none">
+        <p class="m-dropcap">economics has another concept that more people should internalize: opportunity cost.<button class="m-sn-ref" aria-label="note"></button><span class="m-sidenote">the value of the best alternative you give up by making a decision.</span> when you choose one thing, you're simultaneously choosing not to do something else.</p>
+        <p class="m-math-block">MRS<sub>L,M</sub> = βM / αL</p>
+        <p>ten additional hours a week. 520 hours a year. over five years, 2,600 hours.</p>
+      </article>
+      <div class="m-poem">
+        <p class="m-poem-title">“hope” is the thing with feathers</p>
+        <p class="m-meta m-poem-meta">emily dickinson · 1891 · public-domain placeholder</p>
+        <p class="m-stanza"><span>“Hope” is the thing with feathers –</span><span>That perches in the soul –</span><span>And sings the tune without the words –</span><span>And never stops – at all –</span></p>
+        <span data-art="end"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 templates -->
+  <section class="m-section" id="templates">
+    <div class="sg-h"><span class="n">7</span><div><h2>templates</h2><p>five pages to start the personal site. copy one, replace the [TK] parts.</p></div></div>
+    <div class="sg-templates" data-stagger="70">
+      <a class="m-reveal" href="templates/home.html"><div class="m-ph" data-tone="sun"></div><span class="m-h3">home</span><br><span class="m-meta">intro, latest writing, things i made</span></a>
+      <a class="m-reveal" href="templates/writing.html"><div class="m-ph" data-tone="sage"></div><span class="m-h3">writing</span><br><span class="m-meta">filterable index with previews</span></a>
+      <a class="m-reveal" href="templates/essay.html"><div class="m-ph" data-tone="clay"></div><span class="m-h3">essay</span><br><span class="m-meta">long read with sidenotes and maths</span></a>
+      <a class="m-reveal" href="templates/poem.html"><div class="m-ph" data-tone="dusk"></div><span class="m-h3">poem</span><br><span class="m-meta">a single poem, lots of air</span></a>
+      <a class="m-reveal" href="templates/project.html"><div class="m-ph" data-tone="sky"></div><span class="m-h3">project</span><br><span class="m-meta">a thing i made, with figures</span></a>
+    </div>
+  </section>
+
+  <!-- 8 use it -->
+  <section class="m-section">
+    <div class="sg-h"><span class="n">8</span><div><h2>use it</h2><p>four stylesheets and one script. or a single bundled file for one-off projects: run <code class="m-meta">python3 build.py</code>.</p></div></div>
+    <div class="sg-code" id="snippet">&lt;script&gt;try{var t=localStorage.getItem("m-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}&lt;/script&gt;
+&lt;link rel="stylesheet" href="margin/fonts.css"&gt;
+&lt;link rel="stylesheet" href="margin/tokens.css"&gt;
+&lt;link rel="stylesheet" href="margin/base.css"&gt;
+&lt;link rel="stylesheet" href="margin/components.css"&gt;
+
+&lt;body class="m-grain"&gt;
+  &lt;div class="m-page"&gt; … &lt;/div&gt;
+  &lt;script src="margin/margin.js"&gt;&lt;/script&gt;
+&lt;/body&gt;</div>
+    <p style="margin-top:var(--space-4)"><button class="m-btn" data-copy="#snippet">copy snippet</button></p>
+  </section>
+
+  <footer class="m-footer">
+    <div class="m-split"><p class="m-signoff">made slowly, at the margin.</p><span class="m-clock" data-tz="Europe/Berlin" data-place="berlin"></span></div>
+  </footer>
+</div>
+
+<script src="margin.js"></script>
+<script>
+/* style-guide-only: swatches, roles table, space scale */
+(function () {
+  const cs = getComputedStyle(document.documentElement);
+  const v = n => cs.getPropertyValue("--" + n).trim();
+  document.querySelectorAll("[data-swatches]").forEach(g => {
+    g.innerHTML = g.dataset.swatches.split(" ").map(n => `<button class="sg-sw" data-copy-text="var(--${n})" title="copy var(--${n})"><div class="chip" style="background:var(--${n})"></div><span class="nm">${n}</span><span class="hx m-meta">${v(n)}</span></button>`).join("");
+  });
+  const roles = [["bg", "page background"], ["surface", "cards, raised paper"], ["surface-sunk", "wells, inputs, code"], ["text", "primary ink"], ["text-2", "secondary"], ["text-3", "meta, smallest text"], ["line", "hairlines"], ["accent", "marks, rules"], ["accent-text", "accent as text"], ["focus", "focus ring"], ["highlight", "selection, swash"]];
+  document.getElementById("roles").innerHTML = roles.map(([n, d]) => `<tr style="border-top:1px solid var(--line)"><td style="padding:8px 0;width:28px"><span style="display:block;width:18px;height:18px;border-radius:50%;background:var(--${n});border:1px solid var(--line)"></span></td><td class="m-meta" style="color:var(--text)">--${n}</td><td style="color:var(--text-2)">${d}</td></tr>`).join("");
+  document.getElementById("spaces").innerHTML = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => `<div class="sg-space"><span class="m-meta">space-${i} · ${parseFloat(v("space-" + i)) * 16}px</span><i style="width:var(--space-${i})"></i></div>`).join("");
+  document.querySelectorAll(".sg-seg, .m-seg").forEach(s => s.querySelectorAll("button").forEach(b => b.addEventListener("click", () => { s.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", "false")); b.setAttribute("aria-pressed", "true"); })));
+})();
+</script>
+</body>
+</html>

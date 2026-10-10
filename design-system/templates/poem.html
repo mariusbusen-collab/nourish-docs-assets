@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>“hope” is the thing with feathers · marius busen</title>
+<script>try{var t=localStorage.getItem("m-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="stylesheet" href="../fonts.css">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../base.css">
+<link rel="stylesheet" href="../components.css">
+<style>
+.poem-wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: var(--space-8); padding-block: var(--space-9) var(--space-8); }
+.poem-wrap .side { position: sticky; top: var(--space-7); align-self: start; }
+@media (max-width: 860px) { .poem-wrap { grid-template-columns: 1fr; gap: var(--space-6); padding-top: var(--space-7); } .poem-wrap .side { position: static; } }
+.m-stanza > span { opacity: 0; translate: 0 6px; animation: m-rise 700ms var(--ease-out) forwards; }
+@media (prefers-reduced-motion: reduce) { .m-stanza > span { opacity: 1; translate: none; animation: none; } }
+@media print { .m-stanza > span { opacity: 1; translate: none; animation: none; } }
+</style>
+</head>
+<body class="m-grain">
+<div class="m-page">
+  <nav class="m-nav" aria-label="main">
+    <a class="m-wordmark" href="home.html">marius busen <span class="dot"></span></a>
+    <ul>
+      <li><a href="writing.html">writing</a></li>
+      <li><a href="writing.html?f=poem" aria-current="page">poems</a></li>
+      <li><a href="project.html">things</a></li>
+      <li><a href="home.html#about">about</a></li>
+      <li><button class="m-theme" data-theme-toggle></button></li>
+    </ul>
+  </nav>
+
+  <div class="poem-wrap">
+    <aside class="side">
+      <div class="m-eyebrow">poem · no. [TK]</div>
+      <p class="m-meta" style="margin-top:var(--space-3)">emily dickinson · 1891</p>
+      <p class="m-small" style="color:var(--text-2);margin-top:var(--space-5);max-width:18em">a public-domain placeholder, here to show the layout until your own poems arrive. [TK] a line of context: where or when it was written.</p>
+      <div class="m-cluster" style="margin-top:var(--space-5)"><span class="m-tag">hope</span><span class="m-tag">[TK]</span></div>
+    </aside>
+
+    <article class="m-poem" style="max-width:var(--measure-poem)">
+      <h1 class="m-poem-title">“hope” is the thing with feathers</h1>
+      <p class="m-poem-meta m-meta">&nbsp;</p>
+      <p class="m-stanza"><span>“Hope” is the thing with feathers –</span><span>That perches in the soul –</span><span>And sings the tune without the words –</span><span>And never stops – at all –</span></p>
+      <p class="m-stanza"><span>And sweetest – in the Gale – is heard –</span><span>And sore must be the storm –</span><span>That could abash the little Bird</span><span>That kept so many warm –</span></p>
+      <p class="m-stanza"><span>I’ve heard it in the chillest land –</span><span>And on the strangest Sea –</span><span>Yet – never – in Extremity,</span><span>It asked a crumb – of me.</span></p>
+      <span data-art="end"></span>
+    </article>
+  </div>
+
+  <nav class="m-split" aria-label="more poems" style="border-top:1px solid var(--line);padding-top:var(--space-5)">
+    <a class="m-btn is-ghost" href="writing.html?f=poem">← [TK] previous poem</a>
+    <a class="m-btn is-ghost" href="writing.html?f=poem">[TK] next poem →</a>
+  </nav>
+
+  <footer class="m-footer">
+    <div class="m-split"><p class="m-signoff">read it again, slower.</p><span class="m-clock" data-tz="Europe/Berlin" data-place="berlin"></span></div>
+  </footer>
+</div>
+<script src="../margin.js"></script>
+<script>
+/* lines arrive one by one */
+document.querySelectorAll(".m-stanza > span").forEach((l, i) => (l.style.animationDelay = 120 + i * 90 + "ms"));
+</script>
+</body>
+</html>

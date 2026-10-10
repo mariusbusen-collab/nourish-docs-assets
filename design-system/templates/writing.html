@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>writing · marius busen</title>
+<script>try{var t=localStorage.getItem("m-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="stylesheet" href="../fonts.css">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../base.css">
+<link rel="stylesheet" href="../components.css">
+<style>
+.year { display: grid; grid-template-columns: 8rem minmax(0, 1fr); gap: var(--space-5); padding-top: var(--space-7); }
+.year > h2 { font: italic 300 var(--step-3)/1 var(--font-display); color: var(--text-3); position: sticky; top: var(--space-5); align-self: start; }
+@media (max-width: 700px) { .year { grid-template-columns: 1fr; gap: var(--space-3); } .year > h2 { position: static; } }
+.year .m-index a { grid-template-columns: minmax(0, 1fr) auto 1.4em; }
+</style>
+</head>
+<body class="m-grain">
+<div class="m-page">
+  <nav class="m-nav" aria-label="main">
+    <a class="m-wordmark" href="home.html">marius busen <span class="dot"></span></a>
+    <ul>
+      <li><a href="writing.html" aria-current="page">writing</a></li>
+      <li><a href="writing.html?f=poem">poems</a></li>
+      <li><a href="project.html">things</a></li>
+      <li><a href="home.html#about">about</a></li>
+      <li><button class="m-theme" data-theme-toggle></button></li>
+    </ul>
+  </nav>
+
+  <header style="padding-block:var(--space-9) var(--space-6)">
+    <h1 class="m-display m-reveal">writing</h1>
+    <p class="m-lead m-reveal" style="--delay:80ms;max-width:30em;margin-top:var(--space-4)">essays when i want to think something through. poems when thinking isn't the point.</p>
+    <div class="m-seg m-reveal" style="--delay:160ms;margin-top:var(--space-6)" role="group" aria-label="filter writing" data-filter-group="#list">
+      <button data-filter="all" aria-pressed="true">all</button>
+      <button data-filter="essay" aria-pressed="false">essays</button>
+      <button data-filter="poem" aria-pressed="false">poems</button>
+      <button data-filter="project" aria-pressed="false">things</button>
+    </div>
+  </header>
+
+  <div id="list">
+    <section class="year">
+      <h2>2026</h2>
+      <ul class="m-index is-dimming">
+        <li data-kind="essay"><a href="essay.html" data-preview="sun"><span class="ttl">what's your utility function?</span><span class="kind">essay · 12 min</span><span class="go">→</span></a></li>
+        <li data-kind="project"><a href="project.html" data-preview="clay"><span class="ttl">the utility function game</span><span class="kind">project</span><span class="go">→</span></a></li>
+        <li data-kind="poem"><a href="poem.html" data-preview="dusk"><span class="ttl">[TK] poem title</span><span class="kind">poem</span><span class="go">→</span></a></li>
+        <li data-kind="essay"><a href="essay.html" data-preview="sage"><span class="ttl">[TK] essay title</span><span class="kind">essay · [TK] min</span><span class="go">→</span></a></li>
+      </ul>
+    </section>
+    <section class="year">
+      <h2>2025</h2>
+      <ul class="m-index is-dimming">
+        <li data-kind="poem"><a href="poem.html" data-preview="sky"><span class="ttl">[TK] poem title</span><span class="kind">poem</span><span class="go">→</span></a></li>
+        <li data-kind="poem"><a href="poem.html" data-preview="clay"><span class="ttl">[TK] poem title</span><span class="kind">poem</span><span class="go">→</span></a></li>
+        <li data-kind="essay"><a href="essay.html" data-preview="sun"><span class="ttl">[TK] essay title</span><span class="kind">essay · [TK] min</span><span class="go">→</span></a></li>
+      </ul>
+    </section>
+  </div>
+
+  <footer class="m-footer">
+    <div class="m-split"><p class="m-signoff">new pieces arrive slowly. [TK] a way to subscribe.</p><span class="m-clock" data-tz="Europe/Berlin" data-place="berlin"></span></div>
+  </footer>
+</div>
+<script src="../margin.js"></script>
+<script>
+// open with a filter preselected: writing.html?f=poem
+(function () { const f = new URLSearchParams(location.search).get("f"); if (!f) return;
+  addEventListener("DOMContentLoaded", () => { const b = document.querySelector(`[data-filter="${f}"]`); if (b) b.click(); }); })();
+</script>
+</body>
+</html>

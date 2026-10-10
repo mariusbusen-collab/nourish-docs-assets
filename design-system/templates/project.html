@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>the utility function game · marius busen</title>
+<script>try{var t=localStorage.getItem("m-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="stylesheet" href="../fonts.css">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../base.css">
+<link rel="stylesheet" href="../components.css">
+<style>
+.p-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-6); align-items: end; padding-block: var(--space-9) var(--space-7); }
+.p-head .chars { display: flex; align-items: flex-end; }
+.p-head .chars [data-art] { width: 120px; display: block; }
+@media (max-width: 760px) { .p-head { grid-template-columns: 1fr; } .p-head .chars [data-art] { width: 90px; } }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-6); padding-block: var(--space-7); border-block: 1px solid var(--line); }
+@media (max-width: 700px) { .stats { grid-template-columns: 1fr; } }
+.shots { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--space-6) var(--space-5); align-items: start; }
+.shots img { border-radius: 2px; }
+.shots .a { grid-column: 1 / span 7; } .shots .b { grid-column: 8 / span 5; margin-top: var(--space-9); } .shots .c { grid-column: 3 / span 9; }
+@media (max-width: 760px) { .shots > * { grid-column: 1 / -1 !important; margin-top: 0 !important; } }
+.spec { list-style: none; padding: 0; margin: 0; }
+.spec li { display: grid; grid-template-columns: 9rem 1fr; gap: var(--space-4); padding-block: var(--space-3); border-top: 1px solid var(--line); }
+</style>
+</head>
+<body class="m-grain">
+<div class="m-page">
+  <nav class="m-nav" aria-label="main">
+    <a class="m-wordmark" href="home.html">marius busen <span class="dot"></span></a>
+    <ul>
+      <li><a href="writing.html">writing</a></li>
+      <li><a href="writing.html?f=poem">poems</a></li>
+      <li><a href="project.html" aria-current="page">things</a></li>
+      <li><a href="home.html#about">about</a></li>
+      <li><button class="m-theme" data-theme-toggle></button></li>
+    </ul>
+  </nav>
+
+  <header class="p-head">
+    <div>
+      <div class="m-eyebrow m-reveal">project · october 2026 · self-discovery game</div>
+      <h1 class="m-display m-reveal" style="--delay:80ms;margin-top:var(--space-4)">the utility <em>function</em> game</h1>
+      <p class="m-lead m-reveal" style="--delay:160ms;max-width:30em;margin-top:var(--space-5)">a playable version of the essay. you answer one card at a time, and your utility function builds itself next to you as you go.</p>
+      <div class="m-cluster m-reveal" style="--delay:240ms;margin-top:var(--space-6)"><a class="m-btn is-primary" href="../../utility-function/index.html">play it <span class="arr">→</span></a><a class="m-btn" href="essay.html">read the essay</a></div>
+    </div>
+    <div class="chars m-reveal" style="--delay:200ms" aria-hidden="true"><span data-art="hanni"></span><span data-art="nanni"></span></div>
+  </header>
+
+  <section class="stats" data-stagger="90">
+    <div class="m-stat m-reveal"><div class="k">chapters</div><div class="v">7</div><div class="d">one per section of the essay, from values to second-order desires.</div></div>
+    <div class="m-stat m-reveal"><div class="k">cards</div><div class="v">~80</div><div class="d">portraits, this-or-that choices, money rounds, sliders and short reflections.</div></div>
+    <div class="m-stat m-reveal"><div class="k">minutes</div><div class="v">15</div><div class="d">progress saves itself. answers never leave the browser.</div></div>
+  </section>
+
+  <section class="m-section">
+    <div class="shots">
+      <figure class="m-figure is-print a m-reveal" style="--tilt:-1.6deg"><img src="img/ufn-likert.jpg" alt="a card asking how much a portrait sounds like you, with six dots growing in size" loading="lazy"><figcaption>portraits: how much is this person like you?</figcaption></figure>
+      <figure class="m-figure is-print is-tape b m-reveal" style="--tilt:2deg"><img src="img/ufn-pair.jpg" alt="two tilted cards: work that clearly matters, or a year of savings in the bank" loading="lazy"><figcaption>this or that, picked to separate close values</figcaption></figure>
+      <figure class="m-figure c m-reveal"><img src="img/ufn-reveal.jpg" alt="a chapter reveal showing the top three variables with an unlocked stamp" loading="lazy" style="border-radius:var(--radius-md);border:1px solid var(--line)"><figcaption><span class="n">fig. 3</span><span>each chapter ends with a reveal. guess first, then see how well you know yourself.</span></figcaption></figure>
+    </div>
+  </section>
+
+  <section class="m-section" style="padding-top:0">
+    <div class="m-grid">
+      <div class="m-col-5"><h2>how it works</h2></div>
+      <div class="m-col-7 m-stack" style="--stack:var(--space-6)">
+        <div class="m-prose"><p>every answer moves a weight in your function. you see it change in the margin: <span class="m-math">0.32·ln(1+F)</span> for what you chase, <span class="m-math">−0.11/(1+S)</span> for what you escape. at the end you get one of four types, a few honest observations, and your own reflections quoted back.</p></div>
+        <ul class="spec">
+          <li><span class="m-meta">research</span><span>schwartz values, self-determination theory, the dualistic model of passion, regulatory focus, maximizing, delay discounting, sunk costs</span></li>
+          <li><span class="m-meta">built with</span><span>one offline html file, fraunces and inter, motion, canvas-confetti</span></li>
+          <li><span class="m-meta">privacy</span><span>no server. answers stay in local storage.</span></li>
+          <li><span class="m-meta">caveat</span><span>original items, not a validated test. a mirror, not a diagnosis.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer class="m-footer">
+    <div class="m-split"><p class="m-signoff">is this the function you actually want to maximize?</p><span class="m-clock" data-tz="Europe/Berlin" data-place="berlin"></span></div>
+  </footer>
+</div>
+<script src="../margin.js"></script>
+</body>
+</html>

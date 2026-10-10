@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>what's your utility function? · marius busen</title>
+<script>try{var t=localStorage.getItem("m-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="stylesheet" href="../fonts.css">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../base.css">
+<link rel="stylesheet" href="../components.css">
+<style>
+.essay-head { padding-block: var(--space-9) var(--space-7); max-width: 52rem; }
+.essay { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: start; padding-left: clamp(0px, 8vw, 7rem); }
+.essay .m-figure, .essay .m-pullquote { max-width: var(--measure-wide); }
+.progress { position: fixed; left: 0; top: 0; height: 2px; background: var(--accent); width: 0; z-index: 900; transition: width 80ms linear; }
+.toc { list-style: none; padding: 0; margin: var(--space-6) 0 0; display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.next { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-5); margin-top: var(--space-9); }
+@media (max-width: 700px) { .next { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body class="m-grain">
+<div class="progress" id="progress" aria-hidden="true"></div>
+<div class="m-page">
+  <nav class="m-nav" aria-label="main">
+    <a class="m-wordmark" href="home.html">marius busen <span class="dot"></span></a>
+    <ul>
+      <li><a href="writing.html" aria-current="page">writing</a></li>
+      <li><a href="writing.html?f=poem">poems</a></li>
+      <li><a href="project.html">things</a></li>
+      <li><a href="home.html#about">about</a></li>
+      <li><button class="m-theme" data-theme-toggle></button></li>
+    </ul>
+  </nav>
+
+  <header class="essay-head">
+    <div class="m-eyebrow m-reveal">essay · 12 min read · october 2026</div>
+    <h1 class="m-display m-reveal" style="--delay:80ms;margin-top:var(--space-4)">what's your <em>utility function?</em></h1>
+    <p class="m-lead m-reveal" style="--delay:160ms;max-width:32em;margin-top:var(--space-5)">two people make the same choices for opposite reasons. a walk through marginal utility, opportunity cost and sunk costs, and what they say about how we live.</p>
+    <ul class="toc m-reveal" style="--delay:240ms"><li><a class="m-tag" href="#s1">1 · two people</a></li><li><a class="m-tag" href="#s3">3 · the price of one more</a></li><li><span class="m-tag">[TK] other sections</span></li></ul>
+  </header>
+
+  <article class="essay">
+    <div class="m-prose m-with-margin">
+      <h2 id="s1" style="margin-top:0">two people, one decision</h2>
+      <p class="m-dropcap">for sake of explaining my probably somewhat abstract thoughts and the nature of economics, i will use two different people as guiding characters, hanni and nanni.</p>
+      <p>hanni and nanni are both 32. they live in the same city, work in similar jobs, earn roughly the same amount of money, and spend an arguably unhealthy number of hours staring at their laptops.</p>
+      <p>both are ambitious. both are successful. both have sacrificed a considerable amount of their twenties to get where they are. they work roughly 65 hours a week.</p>
+      <p>ask either of them why they work so much, and you'll probably get a similar answer. they enjoy what they do. they like the challenge. they're building something. they want to achieve things.</p>
+      <p>good enough. but there's a difference between hanni and nanni.</p>
+    </div>
+
+    <blockquote class="m-pullquote m-reveal">hanni works because working makes her happy. nanni works because not working makes her unhappy.</blockquote>
+
+    <div class="m-prose m-with-margin">
+      <p>at first glance, that might seem like a distinction without much difference. after all, they behave almost identically.</p>
+      <p>but i think it's a distinction that tells us something fundamental about how people make decisions, what drives them, and ultimately what they're optimizing for. which brings me to utility functions.</p>
+      <p>i studied economics, so i spent way too much time learning about and suffering through them. the basic idea is relatively simple: people have preferences, and a utility function is a mathematical way of representing those preferences.<button class="m-sn-ref" aria-label="note"></button><span class="m-sidenote">standard microeconomic theory generally models individuals as making choices that maximize their utility, subject to constraints.</span></p>
+
+      <h2 id="s3">the price of one more</h2>
+      <p>one of key concepts in economics is marginal utility. it's quite useful in reality as well. the utility you derive from consuming or obtaining something can change depending on how much of it you already have.</p>
+      <p>consider pizza. the first slice when you're starving is wonderful. the second is still pretty good. the third is enjoyable. by the sixth, you're probably starting to question your decisions.</p>
+      <p class="m-math-block">d²U / dx² &lt; 0</p>
+      <p>the rate at which utility increases becomes smaller as consumption increases. and i think this applies really well to achievement.<button class="m-sn-ref" aria-label="note"></button><span class="m-sidenote">take the illustrative function U(A) = 100·ln(1+A). its marginal utility is 100 / (1+A): the first unit contributes much more than the tenth.</span></p>
+    </div>
+
+    <figure class="m-figure m-reveal" style="margin-block:var(--space-7);width:100%">
+      <svg viewBox="0 0 600 260" role="img" aria-label="total utility rises quickly and then flattens; marginal utility falls" style="width:100%;height:auto;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md)">
+        <g font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--text-3)">
+          <line x1="50" y1="220" x2="570" y2="220" stroke="var(--line-strong)"/><line x1="50" y1="30" x2="50" y2="220" stroke="var(--line-strong)"/>
+          <text x="50" y="240">0</text><text x="560" y="240">10</text><text x="300" y="252" text-anchor="middle">achievement units</text>
+        </g>
+        <path d="M50 220 L102 166 L154 135 L206 113 L258 96 L310 82 L362 70 L414 59 L466 50 L518 42 L570 35" fill="none" stroke="var(--data-1)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M50 64 L102 142 L154 168 L206 181 L258 189 L310 194 L362 198 L414 200 L466 202 L518 204 L570 205" fill="none" stroke="var(--data-2)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="476" y="38" font-family="Inter, sans-serif" font-size="12" fill="var(--text-2)">total utility</text>
+        <text x="420" y="194" font-family="Inter, sans-serif" font-size="12" fill="var(--text-2)">marginal utility</text>
+      </svg>
+      <figcaption><span class="n">fig. 1</span><span>total and marginal utility from achievement, U(A) = 100·ln(1+A). schematic.</span></figcaption>
+    </figure>
+
+    <div class="m-prose m-with-margin">
+      <p>imagine hanni receives her first promotion. she's thrilled. she calls her parents. celebrates with friends. feels proud of what she's accomplished.</p>
+      <p>two years later, another promotion. still exciting, but perhaps not quite as exciting as the first. then another. and another.</p>
+      <p>nanni receives the same promotion. but for her, the emotional experience is different. she doesn't necessarily feel enormous satisfaction. she feels <span class="m-mark-swash">relief</span>.</p>
+      <p><strong>are you pursuing success because success makes you happy, or because not being successful would make you unhappy?</strong></p>
+      <p>i'm not convinced most of us know the answer.</p>
+      <hr>
+      <p class="m-meta">[TK] the remaining sections of the essay</p>
+    </div>
+
+    <aside class="m-card is-sunk m-reveal" style="margin-top:var(--space-8);max-width:var(--measure-wide);display:grid;grid-template-columns:auto 1fr;gap:var(--space-5);align-items:center">
+      <span data-art="nanni" style="width:84px;display:block"></span>
+      <div><div class="m-eyebrow">play it</div><p class="m-h3" style="margin:var(--space-2) 0 var(--space-3)">find out if you're hanni or nanni.</p><a class="m-btn is-primary" href="project.html">the utility function game <span class="arr">→</span></a></div>
+    </aside>
+  </article>
+
+  <nav class="next" aria-label="more writing">
+    <a class="m-card is-link" href="writing.html"><div class="m-meta">← previous</div><p class="m-h3" style="margin-top:var(--space-2)">[TK] essay title</p></a>
+    <a class="m-card is-link" href="poem.html" style="text-align:right"><div class="m-meta">next →</div><p class="m-h3" style="margin-top:var(--space-2)">[TK] poem title</p></a>
+  </nav>
+
+  <footer class="m-footer">
+    <div class="m-split"><p class="m-signoff">thanks for reading. write to me if something here moved you.</p><span class="m-clock" data-tz="Europe/Berlin" data-place="berlin"></span></div>
+  </footer>
+</div>
+<script src="../margin.js"></script>
+<script>
+(function () { const bar = document.getElementById("progress");
+  const upd = () => { const h = document.documentElement; bar.style.width = (h.scrollTop / (h.scrollHeight - h.clientHeight) * 100) + "%"; };
+  addEventListener("scroll", upd, { passive: true }); upd(); })();
+</script>
+</body>
+</html>

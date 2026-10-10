@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>marius busen</title>
+<meta name="description" content="essays, poems and small things by marius busen.">
+<script>try{var t=localStorage.getItem("m-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="stylesheet" href="../fonts.css">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../base.css">
+<link rel="stylesheet" href="../components.css">
+<style>
+.intro { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: var(--space-8); align-items: end; padding-block: var(--space-9) var(--space-8); }
+.intro .photo { justify-self: end; width: 100%; max-width: 280px; }
+@media (max-width: 860px) { .intro { grid-template-columns: 1fr; gap: var(--space-7); padding-top: var(--space-7); } .intro .photo { justify-self: start; max-width: 240px; } }
+.things { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-5); }
+@media (max-width: 760px) { .things { grid-template-columns: 1fr; } }
+.things .m-card { display: grid; grid-template-rows: auto 1fr auto; gap: var(--space-3); min-height: 260px; }
+.feature-poem { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-8); align-items: center; }
+@media (max-width: 760px) { .feature-poem { grid-template-columns: 1fr; gap: var(--space-5); } }
+.now { list-style: none; padding: 0; margin: 0; }
+.now li { display: grid; grid-template-columns: 6rem 1fr; gap: var(--space-4); padding-block: var(--space-3); border-top: 1px solid var(--line); }
+</style>
+</head>
+<body class="m-grain">
+<div class="m-page">
+
+  <nav class="m-nav" aria-label="main">
+    <a class="m-wordmark" href="home.html">marius busen <span class="dot"></span></a>
+    <ul>
+      <li><a href="writing.html">writing</a></li>
+      <li><a href="writing.html?f=poem">poems</a></li>
+      <li><a href="project.html">things</a></li>
+      <li><a href="#about">about</a></li>
+      <li><button class="m-theme" data-theme-toggle></button></li>
+    </ul>
+  </nav>
+
+  <header class="intro">
+    <div>
+      <div class="m-eyebrow m-reveal">berlin · essays, poems, small things</div>
+      <h1 class="m-hero m-reveal" style="--delay:80ms;margin-top:var(--space-4)">i write about how we decide what to <em class="m-mark-under">want</em>.</h1>
+      <p class="m-lead m-reveal" style="--delay:160ms;max-width:30em;margin-top:var(--space-6)">i'm marius. by day i'm chief of staff at voize in berlin. before that i invested in startups and studied economics, which is where most of the questions here come from.</p>
+      <div class="m-cluster m-reveal" style="--delay:240ms;margin-top:var(--space-6)"><a class="m-btn is-primary" href="essay.html">read the latest essay <span class="arr">→</span></a><a class="m-btn" href="writing.html">all writing</a></div>
+    </div>
+    <figure class="m-figure is-print is-tape photo m-reveal" style="--tilt:2.2deg;--delay:200ms">
+      <div class="m-ph" data-tone="sun" style="--ratio:4/5"><span class="m-ph-label">[TK] a photo of you</span></div>
+      <figcaption>[TK] somewhere warm, 2026</figcaption>
+    </figure>
+  </header>
+
+  <section class="m-section" style="padding-top:var(--space-6)">
+    <div class="m-split" style="margin-bottom:var(--space-5)"><h2>latest writing</h2><a class="m-link m-meta" href="writing.html">everything →</a></div>
+    <ul class="m-index is-dimming">
+      <li><a href="essay.html" data-preview="sun"><span class="yr">2026</span><span class="ttl">what's your utility function?</span><span class="kind">essay</span><span class="go">→</span></a></li>
+      <li><a href="poem.html" data-preview="dusk"><span class="yr">2026</span><span class="ttl">[TK] poem title</span><span class="kind">poem</span><span class="go">→</span></a></li>
+      <li><a href="essay.html" data-preview="sage"><span class="yr">2026</span><span class="ttl">[TK] essay title</span><span class="kind">essay</span><span class="go">→</span></a></li>
+      <li><a href="poem.html" data-preview="clay"><span class="yr">2025</span><span class="ttl">[TK] poem title</span><span class="kind">poem</span><span class="go">→</span></a></li>
+    </ul>
+  </section>
+
+  <section class="m-section">
+    <h2 style="margin-bottom:var(--space-6)">things i made</h2>
+    <div class="things" data-stagger="90">
+      <a class="m-card is-link m-reveal" href="project.html">
+        <div class="m-eyebrow">project · 2026</div>
+        <div><h3>the utility function game</h3><p class="m-small" style="color:var(--text-2);margin-top:var(--space-2)">80 cards, 7 chapters. find out if you're hanni or nanni, and what you're really optimizing for.</p></div>
+        <div class="m-cluster" style="justify-content:space-between"><span class="m-tag">self-discovery</span><span data-art="hanni" style="width:64px;display:block"></span></div>
+      </a>
+      <a class="m-card is-link m-reveal" href="../index.html">
+        <div class="m-eyebrow">design system · 2026</div>
+        <div><h3>margin</h3><p class="m-small" style="color:var(--text-2);margin-top:var(--space-2)">the paper, ink and small delights this site is made of. open for anyone to look at.</p></div>
+        <div class="m-cluster" style="justify-content:space-between"><span class="m-tag">design</span><span data-art="star" style="display:block"></span></div>
+      </a>
+    </div>
+  </section>
+
+  <section class="m-section feature-poem">
+    <div>
+      <div class="m-eyebrow" style="margin-bottom:var(--space-4)">a poem</div>
+      <div class="m-poem">
+        <p class="m-stanza"><span>“Hope” is the thing with feathers –</span><span>That perches in the soul –</span><span>And sings the tune without the words –</span><span>And never stops – at all –</span></p>
+      </div>
+      <p class="m-meta">emily dickinson · public-domain placeholder until your poems go here</p>
+    </div>
+    <figure class="m-figure"><div class="m-ph" data-tone="dusk" style="--ratio:5/4;border-radius:var(--radius-lg)"><span class="m-ph-label">[TK] image or illustration</span></div></figure>
+  </section>
+
+  <section class="m-section" id="about">
+    <div class="m-grid">
+      <div class="m-col-5"><h2>about</h2></div>
+      <div class="m-col-7 m-stack" style="--stack:var(--space-6)">
+        <p class="m-lead" style="color:var(--text)">[TK] two or three sentences in your own voice: what you care about, why you write, what you'd like people to do after reading.</p>
+        <ul class="now">
+          <li><span class="m-meta">now</span><span>chief of staff at voize, berlin</span></li>
+          <li><span class="m-meta">before</span><span>chief of staff at a saas company · venture investor in france and switzerland</span></li>
+          <li><span class="m-meta">studied</span><span>economics and econometrics</span></li>
+          <li><span class="m-meta">writing</span><span>essays about choices, and poems about [TK]</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer class="m-footer">
+    <div class="m-grid" style="align-items:end">
+      <p class="m-signoff m-col-7">thanks for reading. write to me if something here moved you.</p>
+      <div class="m-col-5 m-stack" style="--stack:var(--space-3);justify-self:end;text-align:right;align-items:flex-end">
+        <a class="m-link" href="mailto:[TK]">[TK] email</a>
+        <a class="m-link" href="#">[TK] linkedin</a>
+        <span class="m-clock" data-tz="Europe/Berlin" data-place="berlin"></span>
+      </div>
+    </div>
+  </footer>
+</div>
+<script src="../margin.js"></script>
+</body>
+</html>
