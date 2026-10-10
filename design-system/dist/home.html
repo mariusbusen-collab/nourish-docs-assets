@@ -155,6 +155,11 @@
   --data-pos: var(--ochre-l);
   --data-neg: var(--dusk-l);
   --data-ref: var(--ink-500);
+  --chart-grid: var(--paper-300);   /* gridlines: one step off the surface */
+  --chart-axis: var(--paper-400);   /* baselines, connectors */
+  --tint-1:   #dbe6f3;              /* soft fill behind data-1 (areas) */
+  --tint-pos: #f6e4b8;              /* soft fill for pos / ochre */
+  --tint-neg: #e3ddf3;              /* soft fill for neg / dusk */
 }
 
 /* ---------- semantic roles: dark ---------- */
@@ -170,6 +175,7 @@
     --shadow-2: 0 2px 0 rgba(0,0,0,.2), 0 22px 44px -16px rgba(0,0,0,.7);
     --grain-opacity: 0.22; --grain-blend: soft-light;
     --data-1: var(--lake-d); --data-2: var(--terracotta-d); --data-3: var(--pine-d); --data-pos: var(--ochre-d); --data-neg: var(--dusk-d); --data-ref: var(--moon-500);
+    --chart-grid: var(--night-600); --chart-axis: var(--night-400); --tint-1: #24364c; --tint-pos: #45371a; --tint-neg: #332f4c;
   }
 }
 :root[data-theme="dark"] {
@@ -183,6 +189,7 @@
   --shadow-2: 0 2px 0 rgba(0,0,0,.2), 0 22px 44px -16px rgba(0,0,0,.7);
   --grain-opacity: 0.22; --grain-blend: soft-light;
   --data-1: var(--lake-d); --data-2: var(--terracotta-d); --data-3: var(--pine-d); --data-pos: var(--ochre-d); --data-neg: var(--dusk-d); --data-ref: var(--moon-500);
+    --chart-grid: var(--night-600); --chart-axis: var(--night-400); --tint-1: #24364c; --tint-pos: #45371a; --tint-neg: #332f4c;
 }
 
 </style>
@@ -798,7 +805,7 @@ a.m-tag:hover, button.m-tag:hover { background: var(--surface-sunk); color: var(
 
   function init() { renderArt(); initTheme(); initReveal(); initSidenotes(); initPreview(); initClock(); initFilters(); initCopy(); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
-  window.Margin = { toast, art: ART, theme: currentTheme };
+  window.Margin = { toast, art: ART, defs: ensureDefs, theme: currentTheme };
 })();
 
 </script>

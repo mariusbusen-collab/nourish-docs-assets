@@ -69,7 +69,7 @@ Paper and ink carry almost every page. Earth hues are for marks, charts and illu
 - **Light:** `--bg` paper-100 `#f3ede3`, `--surface` paper-50 `#fbf8f3`, `--text` ink-900 `#2a241d`, `--accent` terracotta `#c4512b`.
 - **Dark:** `--bg` night-800 `#1b1814`, `--surface` night-700 `#24201b`, `--text` moon-100 `#f1eadf`, `--accent` `#d6612f`.
 - **Text contrast on paper-100:** text 13.2:1 · text-2 6.3:1 · text-3 4.7:1 · accent-text 4.9:1. `ink-500` fails as text; use it for rules and axes only.
-- **Data:** `--data-1…3` (lake, terracotta, pine) pass every colour-vision-deficiency check in any combination, in both modes. `--data-pos` / `--data-neg` (ochre, dusk) are a diverging pair. Charts with more than three series fold into "other".
+- **Data:** `--data-1…3` (lake, terracotta, pine) pass every colour-vision-deficiency check in any combination, in both modes. `--data-pos` / `--data-neg` (ochre, dusk) are a diverging pair. Charts with more than three series fold into "other". Chart chrome uses `--chart-grid` and `--chart-axis`; soft fills use `--tint-1`, `--tint-pos`, `--tint-neg`.
 - Components use **semantic roles** only (`--bg`, `--text-2`, `--accent` …), never primitives. Dark mode follows the system setting; `data-theme="light|dark"` on `<html>` overrides it.
 
 ## Components, at a glance
@@ -85,6 +85,10 @@ Paper and ink carry almost every page. Earth hues are for marks, charts and illu
 - marks: `m-mark-under`, `m-mark-loop`, `m-mark-swash` (draw on scroll; add `is-static` to show at once), `m-asterism`, and `<hr>` inside prose becomes a squiggle
 - characters: `<span data-art="hanni|nanni|star|end">`
 - `m-theme` + `data-theme-toggle` · `m-clock` · `m-tip` · `Margin.toast("…")` · `m-reveal` (+ `data-stagger` on the parent)
+
+## Used by
+
+- `../utility-function/`: the utility function game. Its `build.py` imports this folder's bundler and inlines these files.
 
 ## Known gaps
 

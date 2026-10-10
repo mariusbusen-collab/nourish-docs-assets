@@ -9,7 +9,6 @@ import base64, mimetypes, pathlib, re
 
 here = pathlib.Path(__file__).parent
 dist = here / "dist"
-dist.mkdir(exist_ok=True)
 
 PAGES = [here / "index.html", *sorted((here / "templates").glob("*.html"))]
 
@@ -37,6 +36,7 @@ def bundle(page):
                   lambda m: f"<script>\n{(base / m.group(1)).resolve().read_text()}\n</script>", html)
     # flatten links: dist/ holds every page side by side
     html = html.replace('href="templates/', 'href="').replace('href="../index.html"', 'href="index.html"')
+    dist.mkdir(exist_ok=True)
     out = dist / page.name
     out.write_text(html)
     return out
@@ -55,7 +55,8 @@ def tokens_json():
     (here / "tokens.json").write_text(json.dumps(out, indent=2) + "\n")
     print(f"tokens.json: {len(light)} tokens, {len(dark)} dark overrides")
 
-tokens_json()
-for p in PAGES:
-    o = bundle(p)
-    print(f"{o.relative_to(here)}: {o.stat().st_size / 1024:.0f} KB")
+if __name__ == "__main__":
+    tokens_json()
+    for p in PAGES:
+        o = bundle(p)
+        print(f"{o.relative_to(here)}: {o.stat().st_size / 1024:.0f} KB")

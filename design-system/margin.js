@@ -139,5 +139,5 @@
 
   function init() { renderArt(); initTheme(); initReveal(); initSidenotes(); initPreview(); initClock(); initFilters(); initCopy(); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
-  window.Margin = { toast, art: ART, theme: currentTheme };
+  window.Margin = { toast, art: ART, defs: ensureDefs, theme: currentTheme };
 })();

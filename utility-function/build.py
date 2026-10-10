@@ -1,23 +1,28 @@
-"""Inline fonts and libraries into a single, offline index.html.
+"""Bundle the app into a single, offline index.html.
+
+The app is built on the margin design system (../design-system). This inlines
+its stylesheets (fonts as base64) and margin.js, plus the two vendored
+libraries (Motion, canvas-confetti).
 
 usage: python3 build.py   (reads src/index.src.html, writes index.html)
 """
-import base64, pathlib
+import pathlib, re, sys
 
 here = pathlib.Path(__file__).parent
-src = (here / "src" / "index.src.html").read_text()
+sys.dont_write_bytecode = True
+sys.path.insert(0, str(here.parent / "design-system"))
+from build import inline_css  # noqa: E402  (margin's own bundler)
+
+src_path = here / "src" / "index.src.html"
+html = src_path.read_text()
+base = src_path.parent
 v = here / "vendor"
 
-def b64(name):
-    return base64.b64encode((v / name).read_bytes()).decode()
-
-fonts = f"""
-@font-face {{ font-family: "Fraunces"; font-style: normal; font-weight: 100 900; font-display: swap; src: url(data:font/woff2;base64,{b64("fraunces.woff2")}) format("woff2"); }}
-@font-face {{ font-family: "Fraunces"; font-style: italic; font-weight: 100 900; font-display: swap; src: url(data:font/woff2;base64,{b64("fraunces-italic.woff2")}) format("woff2"); }}
-@font-face {{ font-family: "Inter"; font-style: normal; font-weight: 400 600; font-display: swap; src: url(data:font/woff2;base64,{b64("inter.woff2")}) format("woff2"); }}
-"""
-out = (src.replace("/*@FONTS*/", fonts)
-          .replace("/*@MOTION*/", (v / "motion.min.js").read_text())
-          .replace("/*@CONFETTI*/", (v / "confetti.browser.js").read_text()))
-(here / "index.html").write_text(out)
-print(f"index.html: {len(out) / 1024:.0f} KB")
+html = re.sub(r'<link rel="stylesheet" href="([^"]+)">',
+              lambda m: f"<style>\n{inline_css((base / m.group(1)).resolve())}\n</style>", html)
+html = re.sub(r'<script src="([^"]+)"></script>',
+              lambda m: f"<script>\n{(base / m.group(1)).resolve().read_text()}\n</script>", html)
+html = (html.replace("/*@MOTION*/", (v / "motion.min.js").read_text())
+            .replace("/*@CONFETTI*/", (v / "confetti.browser.js").read_text()))
+(here / "index.html").write_text(html)
+print(f"index.html: {len(html) / 1024:.0f} KB")

@@ -5,69 +5,39 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#f3ede3">
 <title>what's your utility function?</title>
+<script>try{var t=localStorage.getItem("m-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="stylesheet" href="../../design-system/fonts.css">
+<link rel="stylesheet" href="../../design-system/tokens.css">
+<link rel="stylesheet" href="../../design-system/base.css">
+<link rel="stylesheet" href="../../design-system/components.css">
 <style>
-/*@FONTS*/
-
-/* ---------- tokens ---------- */
+/* ---------- app roles, mapped onto the margin design system (../design-system/tokens.css) ---------- */
 :root {
-  color-scheme: light;
-  --page: #f3ede3;
-  --surface-1: #fbf8f3;
-  --surface-2: #f1eadf;
-  --surface-3: #e7decf;
-  --ink: #2a241d;
-  --ink-2: #5e554a;
-  --ink-3: #8d8273;
-  --grid: #e6ddcf;
-  --axis: #cdbfab;
-  --border: rgba(42, 36, 29, 0.12);
-  --shadow: 0 1px 0 rgba(42,36,29,.04), 0 10px 30px -12px rgba(74,52,24,.22);
-  --shadow-lift: 0 2px 0 rgba(42,36,29,.05), 0 18px 40px -14px rgba(74,52,24,.32);
-  /* data colors, validated (CVD + contrast) against --surface-1 */
-  --s1: #2f6aa8;      /* stated  · lake */
-  --s2: #c4512b;      /* revealed · terracotta */
-  --s3: #1d8f7a;      /* wished · pine */
-  --hanni: #b97a0a;   /* chase · ochre sun */
-  --nanni: #6150a8;   /* escape · dusk */
-  --ref: #8d8273;
-  --accent: #c4512b;
-  --tint-hanni: #f6e4b8;
-  --tint-nanni: #e3ddf3;
-  --tint-s1: #dbe6f3;
-  --grain: .38;
-  --grain-blend: multiply;
-  --serif: "Fraunces", "Iowan Old Style", Georgia, serif;
-  --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --ease-out: cubic-bezier(.22, 1, .36, 1);
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    --page: #1b1814;
-    --surface-1: #24201b;
-    --surface-2: #2c2721;
-    --surface-3: #36302a;
-    --ink: #f1eadf;
-    --ink-2: #c9beae;
-    --ink-3: #8f8577;
-    --grid: #36302a;
-    --axis: #4a4239;
-    --border: rgba(241, 234, 223, 0.10);
-    --shadow: 0 1px 0 rgba(0,0,0,.2), 0 12px 32px -12px rgba(0,0,0,.6);
-    --shadow-lift: 0 2px 0 rgba(0,0,0,.2), 0 20px 44px -14px rgba(0,0,0,.7);
-    --s1: #3f80c8;
-    --s2: #d6612f;
-    --s3: #1f9c85;
-    --hanni: #b8811a;
-    --nanni: #7a6bc8;
-    --ref: #8f8577;
-    --accent: #d6612f;
-    --tint-hanni: #45371a;
-    --tint-nanni: #332f4c;
-    --tint-s1: #24364c;
-    --grain: .22;
-    --grain-blend: soft-light;
-  }
+  --page: var(--bg);
+  --surface-1: var(--surface);
+  --surface-2: var(--surface-sunk);
+  --surface-3: var(--surface-press);
+  --ink: var(--text);
+  --ink-2: var(--text-2);
+  --ink-3: var(--text-3);
+  --grid: var(--chart-grid);
+  --axis: var(--chart-axis);
+  --border: var(--line);
+  --shadow: var(--shadow-1);
+  --shadow-lift: var(--shadow-2);
+  --s1: var(--data-1);       /* stated */
+  --s2: var(--data-2);       /* revealed */
+  --s3: var(--data-3);       /* wished */
+  --hanni: var(--data-pos);  /* chase */
+  --nanni: var(--data-neg);  /* escape */
+  --ref: var(--data-ref);
+  --tint-hanni: var(--tint-pos);
+  --tint-nanni: var(--tint-neg);
+  --tint-s1: var(--tint-1);
+  --wash: var(--surface-sunk);
+  --serif: var(--font-display);
+  --sans: var(--font-ui);
+  --mono: var(--font-mono);
 }
 
 /* ---------- base ---------- */
@@ -78,10 +48,6 @@ body {
   font: 16px/1.55 var(--sans); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
   min-height: 100vh;
 }
-body::before { /* paper grain */
-  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 100; opacity: var(--grain); mix-blend-mode: var(--grain-blend);
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .32  0 0 0 0 .25  0 0 0 0 .16  0 0 0 .55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-}
 button { font: inherit; color: inherit; -webkit-tap-highlight-color: transparent; }
 ::selection { background: var(--tint-hanni); }
 :focus-visible { outline: 2px solid var(--s1); outline-offset: 3px; border-radius: 10px; }
@@ -89,7 +55,7 @@ button { font: inherit; color: inherit; -webkit-tap-highlight-color: transparent
 h1, h2, .display { font-family: var(--serif); font-optical-sizing: auto; font-weight: 420; letter-spacing: -0.02em; margin: 0; }
 h1 { font-size: clamp(34px, 5vw, 52px); line-height: 1.02; }
 h2 { font-size: 26px; line-height: 1.15; margin-bottom: 8px; }
-h3 { font: 600 11px/1.2 var(--sans); text-transform: uppercase; letter-spacing: .12em; color: var(--ink-3); margin: 0 0 12px; }
+h3 { font: 500 11px/1.2 var(--mono); text-transform: uppercase; letter-spacing: .12em; color: var(--ink-3); margin: 0 0 12px; }
 p { margin: 0 0 12px; }
 em, .it { font-family: var(--serif); font-style: italic; font-weight: 380; }
 .sub { color: var(--ink-2); }
@@ -125,7 +91,7 @@ em, .it { font-family: var(--serif); font-style: italic; font-weight: 380; }
   min-height: 470px; display: flex; flex-direction: column; box-shadow: var(--shadow); position: relative; will-change: transform;
 }
 @media (max-width: 600px) { .card { padding: 26px 22px 20px; min-height: 440px; border-radius: 18px; } }
-.kicker { font: 600 11px/1 var(--sans); text-transform: uppercase; letter-spacing: .14em; color: var(--ink-3); margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+.kicker { font: 500 11px/1 var(--mono); text-transform: uppercase; letter-spacing: .12em; color: var(--ink-3); margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
 .prompt { font-size: 14px; color: var(--ink-2); margin-bottom: 10px; }
 .q { font-family: var(--serif); font-optical-sizing: auto; font-size: clamp(24px, 3.2vw, 32px); line-height: 1.24; font-weight: 400; letter-spacing: -0.015em; margin: 0 0 28px; text-wrap: balance; }
 .spacer { flex: 1; min-height: 20px; }
@@ -230,16 +196,8 @@ input[type=text]:focus { border-color: var(--ink-3); }
 
 /* buttons & nav */
 .nav { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 26px; }
-.btn { border-radius: 999px; padding: 11px 20px; cursor: pointer; border: 1px solid var(--border); background: transparent; font-size: 15px; transition: background .15s, transform .15s var(--ease-out); }
-.btn:hover { background: var(--surface-2); }
-.btn:active { transform: scale(.97); }
-.btn.primary { background: var(--ink); color: var(--surface-1); border-color: var(--ink); padding: 11px 22px; }
-.btn.primary:hover { background: var(--ink-2); }
-.btn:disabled { opacity: .3; cursor: default; }
-.btn .arr { display: inline-block; transition: transform .2s var(--ease-out); }
-.btn:hover .arr { transform: translateX(3px); }
-.ghost { background: none; border: 0; color: var(--ink-3); cursor: pointer; font-size: 14px; padding: 6px 4px; }
-.ghost:hover { color: var(--ink); }
+.card .m-btn, .actions .m-btn { font-size: 15px; padding: 0.8em 1.35em; }
+.m-btn.is-ghost { font-size: 14px; }
 
 /* quotes */
 .quote { font-family: var(--serif); font-style: italic; font-weight: 360; font-size: clamp(19px, 2.4vw, 23px); line-height: 1.4; color: var(--ink-2); margin: 8px 0 22px; padding-left: 18px; border-left: 2px solid var(--accent); text-wrap: pretty; }
@@ -249,7 +207,7 @@ input[type=text]:focus { border-color: var(--ink-3); }
 .hero { display: grid; grid-template-columns: 1fr 1fr; align-items: end; gap: 6px; max-width: 340px; margin: -8px auto 8px; }
 .hero figure { margin: 0; text-align: center; }
 .hero figcaption { font: italic 400 16px/1.2 var(--serif); color: var(--ink-2); margin-top: -4px; }
-.char { width: 100%; height: auto; overflow: visible; }
+.hero .m-sticker, .revealchar .m-sticker, .rhero .art .m-sticker { width: 100%; }
 .chnum { font: italic 300 88px/0.8 var(--serif); color: var(--accent); letter-spacing: -0.04em; }
 .chhead { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 14px; }
 .chicon { width: 96px; height: 96px; flex: none; }
@@ -311,10 +269,21 @@ aside.panel { position: sticky; top: 28px; align-self: start; max-height: calc(1
 @media (max-width: 1000px) { .fab.show { display: inline-flex; } }
 
 /* toast: a paper slip */
-.toast { position: fixed; left: 50%; top: 16px; transform: translate(-50%, -16px) rotate(-1deg); opacity: 0; background: var(--surface-1); color: var(--ink); border: 1px solid var(--border); box-shadow: var(--shadow-lift); padding: 9px 16px; border-radius: 12px; font-size: 13.5px; z-index: 60; pointer-events: none; white-space: nowrap; transition: opacity .25s, transform .35s var(--ease-out); }
-.toast.on { opacity: 1; transform: translate(-50%, 0) rotate(-1deg); }
-.toast b { font-family: var(--serif); font-style: italic; font-weight: 450; }
-.toast .up { color: var(--s3); } .toast .down { color: var(--s2); }
+.m-toast b { font-family: var(--serif); font-style: italic; font-weight: 450; }
+.m-toast { white-space: nowrap; }
+.m-toast .up { color: var(--s3); } .m-toast .down { color: var(--s2); }
+
+/* inline icons (margin's base.css makes svg block-level) */
+:where(.legend, .ends, .tile .k, .meter .lbl, .badge, .lead) svg { display: inline-block; vertical-align: -0.15em; }
+.dot svg { display: block; }
+
+/* app header, from margin's m-nav */
+.app-top { max-width: 1100px; margin: 0 auto; padding: 0 28px; }
+.app-top .m-nav { padding-block: 18px 6px; }
+.app-top .m-wordmark { font-size: 18px; }
+.app-top .by { font: 400 12px/1 var(--mono); color: var(--text-3); }
+@media (max-width: 1000px) { .app-top { padding: 0 16px; } .app-top .m-nav { flex-direction: row; align-items: center; } }
+@media (max-width: 520px) { .app-top .by { display: none; } }
 
 /* ---------- results ---------- */
 .results { max-width: 840px; margin: 0 auto; width: 100%; }
@@ -363,56 +332,34 @@ th { color: var(--ink-3); font-weight: 500; font-size: 12px; }
 @keyframes sway { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-2deg); } }
 @keyframes wave { 0%, 60%, 100% { transform: rotate(0); } 70% { transform: rotate(-14deg); } 80% { transform: rotate(8deg); } 90% { transform: rotate(-8deg); } }
 @keyframes spin { to { transform: rotate(360deg); } }
-.hanni .body { animation: bob 3.2s ease-in-out infinite; transform-origin: 50% 100%; }
-.hanni .arm { animation: wave 4s ease-in-out infinite; transform-origin: 108px 98px; transform-box: view-box; }
-.hanni .sun { animation: spin 40s linear infinite; transform-origin: 112px 26px; transform-box: view-box; }
-.nanni .body { animation: sway 4.4s ease-in-out infinite; transform-origin: 50% 100%; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
-@media print { .rcard, .tile { opacity: 1 !important; } .actions, .topbar, .fab, aside, body::before { display: none !important; } body { background: #fff; } .rcard, .tile { box-shadow: none; break-inside: avoid; } }
+@media print { .rcard, .tile { opacity: 1 !important; } .actions, .topbar, .fab, aside, .app-top { display: none !important; } body { background: #fff; } .rcard, .tile { box-shadow: none; break-inside: avoid; } }
 </style>
 </head>
-<body>
-<svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <filter id="wob"><feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.4" xChannelSelector="R" yChannelSelector="G"/></filter>
-</svg>
+<body class="m-grain">
+<div class="app-top"><nav class="m-nav" aria-label="app">
+  <a class="m-wordmark" href="#" onclick="S.i=0;save();render();return false">the utility function game <span class="dot"></span></a>
+  <span class="m-cluster" style="--cluster:14px"><span class="by">a game by marius busen</span><button class="m-theme" data-theme-toggle></button></span>
+</nav></div>
 <div class="app" id="app">
   <main id="main"></main>
   <aside class="panel" id="panel" aria-label="your utility function so far"></aside>
 </div>
 <button class="fab" id="fab" onclick="togglePanel()" aria-label="show your function"><span>your function</span><span class="mini" id="fabmini"></span></button>
-<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="m-toast" id="toast" role="status" aria-live="polite"></div>
 <div id="tip" role="tooltip"></div>
 
+<script src="../../design-system/margin.js"></script>
 <script>/*@MOTION*/</script>
 <script>/*@CONFETTI*/</script>
 <script>
 /* =========================================================================
-   illustrations (hand-drawn feel via the #wob displacement filter)
+   illustrations (hand-drawn feel via margin's #m-wobble filter)
    ========================================================================= */
 const INK = "#2a241d";
-const ART = {
-  hanni: (extra = "") => `<svg class="char hanni ${extra}" viewBox="0 0 140 160" aria-hidden="true"><g filter="url(#wob)" stroke="${INK}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none">
-    <g class="sun"><circle cx="112" cy="26" r="10" fill="#f0c46a"/><path d="M112 7v6M112 39v6M93 26h6M125 26h6M99 13l4 4M121 35l4 4M99 39l4-4M121 17l4-4"/></g>
-    <g class="body">
-      <path d="M30 152c-8-30-6-62 8-84 14-22 50-24 66-4 16 20 18 58 10 88z" fill="#f0c46a"/>
-      <path class="arm" d="M108 98c10-8 16-20 16-32"/>
-      <path d="M33 106c-8 6-12 14-12 24"/>
-      <path d="M64 56c1-7 6-11 12-12"/>
-      <circle cx="58" cy="90" r="3.2" fill="${INK}" stroke="none"/><circle cx="84" cy="90" r="3.2" fill="${INK}" stroke="none"/>
-      <path d="M60 103c6 7 18 7 24 0"/>
-      <circle cx="49" cy="101" r="6" fill="#e98a6a" opacity=".45" stroke="none"/><circle cx="94" cy="101" r="6" fill="#e98a6a" opacity=".45" stroke="none"/>
-    </g></g></svg>`,
-  nanni: (extra = "") => `<svg class="char nanni ${extra}" viewBox="0 0 140 160" aria-hidden="true"><g filter="url(#wob)" stroke="${INK}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none">
-    <path d="M32 12a15 15 0 1 0 15 24a12 12 0 1 1-15-24z" fill="#ddd5f3"/>
-    <g class="body">
-      <path d="M38 152c-6-36-4-74 10-96 12-18 40-18 52 0 14 22 14 60 8 96z" fill="#b9aee3"/>
-      <path d="M56 77l9-4M88 77l-9-4"/>
-      <circle cx="61" cy="86" r="3.2" fill="${INK}" stroke="none"/><circle cx="83" cy="86" r="3.2" fill="${INK}" stroke="none"/>
-      <path d="M63 101c3-2 6-2 9 0s6 2 9 0"/>
-      <path d="M103 64c3 4 4 7 2 9s-6 0-5-3 3-6 3-6z" fill="#cfe3f3"/>
-      <rect x="47" y="112" width="50" height="28" rx="3" fill="#fbf8f3"/><circle cx="72" cy="126" r="2" fill="${INK}" stroke="none"/>
-      <path d="M40 142h64"/><path d="M42 114c2 8 4 14 6 18M102 114c-2 8-4 14-6 18"/>
-    </g></g></svg>`,
+const ART = {   /* the characters live in the design system (margin.js) */
+  hanni: () => Margin.art.hanni(),
+  nanni: () => Margin.art.nanni(),
 };
 const ICON = {
   1: `<path d="M20 12h24M22 12v7c-6 4-8 9-8 15v16c0 4 3 7 7 7h22c4 0 7-3 7-7V34c0-6-2-11-8-15v-7" fill="#fbf8f3"/><circle cx="26" cy="47" r="5" fill="#9cbbe0"/><circle cx="38" cy="47" r="5" fill="#e8a088"/><circle cx="32" cy="37" r="5" fill="#f0c46a"/><circle cx="43" cy="36" r="4" fill="#93cdbd"/><circle cx="22" cy="37" r="4" fill="#c4b9ea"/>`,
@@ -427,7 +374,7 @@ const ICON = {
   runner: `<path d="M6 46c10-14 18 4 27-8s13-12 17-6"/><path d="M47 28l4 4-5 2"/><path d="M54 14v14M54 14l7 3-7 3" fill="#f0c46a"/><circle cx="12" cy="40" r="3" fill="#c4b9ea"/>`,
   guardian: `<path d="M32 7l20 7v14c0 14-9 23-20 28-11-5-20-14-20-28V14z" fill="#c4b9ea"/><circle cx="32" cy="27" r="4" fill="#fbf8f3"/><path d="M32 31v8"/>`,
 };
-const icon = (k, cls = "chicon") => `<svg class="${cls}" viewBox="0 0 64 64" aria-hidden="true"><g filter="url(#wob)" stroke="${INK}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none">${ICON[k]}</g></svg>`;
+const icon = (k, cls = "chicon") => `<svg class="${cls}" viewBox="0 0 64 64" aria-hidden="true"><g filter="url(#m-wobble)" stroke="${INK}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none">${ICON[k]}</g></svg>`;
 const SUN = `<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="3.2" fill="var(--hanni)"/><path d="M7 0.8v1.6M7 11.6v1.6M0.8 7h1.6M11.6 7h1.6M2.6 2.6l1.1 1.1M10.3 10.3l1.1 1.1M2.6 11.4l1.1-1.1M10.3 3.7l1.1-1.1" stroke="var(--hanni)" stroke-width="1.3" stroke-linecap="round"/></svg>`;
 const MOON = `<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M9.5 1.5a5.5 5.5 0 1 0 3 9a4.3 4.3 0 1 1-3-9z" fill="var(--nanni)"/></svg>`;
 const CHECK = `<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7.4l2.6 2.6L11 4.4" stroke="var(--surface-1)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
@@ -775,7 +722,7 @@ function celebrate(power = 1) {
   confetti({ ...o, origin: { x: 0.7, y: 0.35 }, angle: 120 });
 }
 let toastT;
-function toast(html) { const t = $("#toast"); t.innerHTML = html; t.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("on"), 1900); }
+function toast(html) { const t = $("#toast"); t.innerHTML = html; t.classList.add("is-on"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("is-on"), 1900); }
 function togglePanel() { $("#panel").classList.toggle("open"); }
 
 function equationHTML(rows, limit, prev) {
@@ -853,8 +800,8 @@ function topbar(s) {
   return `<div class="topbar"><div class="thread" aria-hidden="true">${beads}</div>
     <span class="toplabel"><b>${ch.n}</b><span class="chname"> · ${esc(ch.title)}</span> <span>· ${pos}/${inCh.length}</span></span></div>`;
 }
-const backBtn = () => `<button class="ghost" onclick="go(-1)" ${S.i <= 1 ? "disabled" : ""}>← back</button>`;
-const skipBtn = () => `<button class="ghost" onclick="go(1)">skip</button>`;
+const backBtn = () => `<button class="m-btn is-ghost" onclick="go(-1)" ${S.i <= 1 ? "disabled" : ""}>← back</button>`;
+const skipBtn = () => `<button class="m-btn is-ghost" onclick="go(1)">skip</button>`;
 
 const R = {
   welcome: () => `
@@ -870,9 +817,9 @@ const R = {
     <p class="muted" style="text-align:center">everything stays in your browser. progress saves itself. a mirror, not a clinical test.</p>
     <div style="display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap;margin:20px 0 4px">
       <input type="text" id="nm" value="${esc(S.name)}" maxlength="30" placeholder="your first name (optional)" aria-label="your first name" oninput="S.name=this.value;save()">
-      <button class="btn primary" onclick="go(1)">${Object.keys(S.a).length ? "continue" : "begin"} <span class="arr">→</span></button>
+      <button class="m-btn is-primary" onclick="go(1)">${Object.keys(S.a).length ? "continue" : "begin"} <span class="arr">→</span></button>
     </div>
-    ${Object.keys(S.a).length ? `<p style="text-align:center;margin:8px 0 0"><button class="ghost" onclick="if(confirm('clear all answers and start over?')){S=fresh();location.hash='';save();render()}">start over</button></p>` : ""}`,
+    ${Object.keys(S.a).length ? `<p style="text-align:center;margin:8px 0 0"><button class="m-btn is-ghost" onclick="if(confirm('clear all answers and start over?')){S=fresh();location.hash='';save();render()}">start over</button></p>` : ""}`,
 
   chapter: s => {
     const c = CHAPTERS[s.ch - 1];
@@ -882,7 +829,7 @@ const R = {
       <p class="sub">${esc(c.intro)}</p>
       <div class="spacer"></div>
       <div><span class="unlockline">🔒 unlocks <b>${esc(c.unlock)}</b> · ${CH_STEPS[c.n - 1].length - 1} cards</span></div>
-      <div class="nav">${backBtn()}<button class="btn primary" onclick="go(1)">begin <span class="arr">→</span></button></div>`;
+      <div class="nav">${backBtn()}<button class="m-btn is-primary" onclick="go(1)">begin <span class="arr">→</span></button></div>`;
   },
 
   likert: s => {
@@ -927,7 +874,7 @@ const R = {
         <input class="sunmoon" type="range" min="0" max="100" value="${cur.lack}" id="bl" aria-label="fine versus anxious">
         <div class="ends"><span>${SUN} fine, i miss it a bit</span><span>anxious, behind ${MOON}</span></div></div>
       <div class="spacer"></div>
-      <div class="nav">${backBtn()}<button class="btn primary" id="bnext">next <span class="arr">→</span></button></div>`;
+      <div class="nav">${backBtn()}<button class="m-btn is-primary" id="bnext">next <span class="arr">→</span></button></div>`;
   },
 
   levels: () => {
@@ -937,7 +884,7 @@ const R = {
       <p class="muted" style="margin-bottom:14px">0 = none at all · 10 = more than you could want</p>
       ${VALUES.map(v => `<div class="gridrow"><div class="nm">${esc(v.label)}</div>
         <input type="range" min="0" max="10" value="${lv[v.k] != null ? lv[v.k] : 5}" data-k="${v.k}" aria-label="${esc(v.label)} level"><output>${lv[v.k] != null ? lv[v.k] : 5}</output></div>`).join("")}
-      <div class="nav">${backBtn()}<button class="btn primary" id="gnext">next <span class="arr">→</span></button></div>`;
+      <div class="nav">${backBtn()}<button class="m-btn is-primary" id="gnext">next <span class="arr">→</span></button></div>`;
   },
 
   hours: () => {
@@ -950,7 +897,7 @@ const R = {
         <input type="number" min="0" max="168" inputmode="numeric" value="${h[v.k] != null ? h[v.k] : 0}" data-k="${v.k}" aria-label="${esc(v.label)} hours per week">
         <button type="button" data-k="${v.k}" data-d="1" aria-label="more ${esc(v.label)}">+</button></span></div>`).join("")}</div>
       <div class="week"><div class="bar" id="wbar"></div><div class="lbl"><span id="wlbl"></span><span>168 hours in a week</span></div></div>
-      <div class="nav">${backBtn()}<button class="btn primary" id="gnext">next <span class="arr">→</span></button></div>`;
+      <div class="nav">${backBtn()}<button class="m-btn is-primary" id="gnext">next <span class="arr">→</span></button></div>`;
   },
 
   wish: () => {
@@ -961,7 +908,7 @@ const R = {
       <p class="muted" style="margin-bottom:14px">not what you should say. what you would pick.</p>
       ${VALUES.map(v => `<div class="wishrow"><div class="nm" style="font-size:14px;font-weight:500">${esc(v.label)}</div>
         <div class="seg" data-k="${v.k}">${opts.map(o => `<button class="${(w[v.k] || "same") === o[0] ? "sel" : ""}" data-v="${o[0]}">${o[1]}</button>`).join("")}</div></div>`).join("")}
-      <div class="nav">${backBtn()}<button class="btn primary" id="gnext">next <span class="arr">→</span></button></div>`;
+      <div class="nav">${backBtn()}<button class="m-btn is-primary" id="gnext">next <span class="arr">→</span></button></div>`;
   },
 
   titr: s => {
@@ -992,7 +939,7 @@ const R = {
       <div class="bip"><input class="${s.pctLabel ? "" : "moonsun"}" type="range" min="0" max="100" value="${val}" id="pr" aria-label="your guess">
       <div class="ends"><span>${s.pctLabel ? "" : MOON} ${esc(s.left)}</span><span>${esc(s.right)} ${s.pctLabel ? "" : SUN}</span></div></div>
       <div class="spacer"></div>
-      <div class="nav">${backBtn()}<span class="hint">i'll show you how close you were</span><button class="btn primary" id="prnext">lock it in</button></div>`;
+      <div class="nav">${backBtn()}<span class="hint">i'll show you how close you were</span><button class="m-btn is-primary" id="prnext">lock it in</button></div>`;
   },
 
   reflect: s => `<div class="kicker">✎ pause · one sentence is enough</div>
@@ -1000,7 +947,7 @@ const R = {
     <textarea id="rt" placeholder="write here, or skip…" aria-label="${esc(s.text)}">${esc(S.a[s.id] || "")}</textarea>
     <p class="hint" style="margin-top:10px">your words appear in your final profile. nobody else sees them.</p>
     <div class="spacer"></div>
-    <div class="nav">${backBtn()}<span style="display:flex;gap:6px">${skipBtn()}<button class="btn primary" id="rnext">keep it <span class="arr">→</span></button></span></div>`,
+    <div class="nav">${backBtn()}<span style="display:flex;gap:6px">${skipBtn()}<button class="m-btn is-primary" id="rnext">keep it <span class="arr">→</span></button></span></div>`,
 
   reveal: s => {
     const P = profile();
@@ -1009,7 +956,7 @@ const R = {
     const newBadges = badges(P).filter(b => b.on && !(S.badgesShown || []).includes(b.k));
     if (first && newBadges.length) { S.badgesShown = [...(S.badgesShown || []), ...newBadges.map(b => b.k)]; save(); REVEAL_FX = newBadges; } else REVEAL_FX = first ? [] : null;
     return `<div class="reveal"><span class="stamp" id="stamp">✓ unlocked · ${esc(c.unlock)}</span>${REVEALS[s.ch](P)}</div><div class="spacer"></div>
-      <div class="nav">${backBtn()}<button class="btn primary" onclick="go(1)">${s.ch === 7 ? "reveal my utility function" : "continue"} <span class="arr">→</span></button></div>`;
+      <div class="nav">${backBtn()}<button class="m-btn is-primary" onclick="go(1)">${s.ch === 7 ? "reveal my utility function" : "continue"} <span class="arr">→</span></button></div>`;
   },
 };
 let REVEAL_FX = null;
@@ -1184,7 +1131,7 @@ document.addEventListener("keydown", e => {
   const s = step(); if (!s || e.target.matches("input, textarea")) return;
   if (/^[1-9]$/.test(e.key)) { const b = document.querySelectorAll(".card .opt[data-v]")[+e.key - 1]; if (b) b.click(); }
   if (e.key === "ArrowLeft" && S.i > 1 && s.type !== "results") go(-1);
-  if (e.key === "Enter") { const p = document.querySelector(".card .btn.primary"); if (p) p.click(); }
+  if (e.key === "Enter") { const p = document.querySelector(".card .m-btn.is-primary"); if (p) p.click(); }
 });
 
 /* =========================================================================
@@ -1279,12 +1226,12 @@ function RESULTS() {
 
     ${T.done ? `<div class="rcard"><h2>how fast the future fades</h2>
       <p class="sub">the present value of 100 units of utility, t years from now.</p>
-      <div class="legend"><span><svg width="18" height="10"><line x1="0" y1="5" x2="18" y2="5" stroke="var(--s1)" stroke-width="2"/></svg>you, δ = ${T.delta.toFixed(2)}</span><span><svg width="18" height="10"><line x1="0" y1="5" x2="18" y2="5" stroke="var(--ref)" stroke-width="2"/></svg>essay example, δ = 0.90</span></div>
+      <div class="legend"><span><svg width="18" height="10" viewBox="0 0 18 10"><line x1="0" y1="5" x2="18" y2="5" stroke="var(--s1)" stroke-width="2"/></svg>you, δ = ${T.delta.toFixed(2)}</span><span><svg width="18" height="10" viewBox="0 0 18 10"><line x1="0" y1="5" x2="18" y2="5" stroke="var(--ref)" stroke-width="2"/></svg>essay example, δ = 0.90</span></div>
       <div id="c4"></div></div>` : ""}
 
     <div class="rcard"><h2>how well you know yourself</h2>
       <p class="sub">your guesses vs what your answers say.</p>
-      <div class="legend"><span><svg width="16" height="16"><rect x="3" y="3" width="10" height="10" rx="2" fill="var(--s2)" stroke="var(--surface-1)" stroke-width="2"/></svg>your guess</span><span><svg width="16" height="16"><circle cx="8" cy="8" r="5.5" fill="var(--s1)" stroke="var(--surface-1)" stroke-width="2"/></svg>your answers</span></div>
+      <div class="legend"><span><svg width="16" height="16" viewBox="0 0 16 16"><rect x="3" y="3" width="10" height="10" rx="2" fill="var(--s2)" stroke="var(--surface-1)" stroke-width="2"/></svg>your guess</span><span><svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5" fill="var(--s1)" stroke="var(--surface-1)" stroke-width="2"/></svg>your answers</span></div>
       <div id="c5"></div>
       <div class="badges" style="margin-top:16px">${badges(P).map(b => `<span class="badge ${b.on ? "on" : ""}" title="${esc(b.desc)}"><span class="g">${b.on ? b.g : "?"}</span>${esc(b.name)} <span class="muted">· ${esc(b.desc)}</span></span>`).join("")}</div></div>
 
@@ -1311,13 +1258,13 @@ function RESULTS() {
       </ul></div>
 
     <div class="actions">
-      <button class="btn primary" onclick="copySummary()">copy summary</button>
-      <button class="btn" onclick="shareLink()">copy share link</button>
-      <button class="btn" onclick="window.print()">print / pdf</button>
-      <button class="btn" onclick="S.i=1;save();render()">replay answers</button>
-      <button class="btn" onclick="if(confirm('clear all answers and start over?')){S=fresh();location.hash='';save();render()}">start over</button>
+      <button class="m-btn is-primary" onclick="copySummary()">copy summary</button>
+      <button class="m-btn" onclick="shareLink()">copy share link</button>
+      <button class="m-btn" onclick="window.print()">print / pdf</button>
+      <button class="m-btn" onclick="S.i=1;save();render()">replay answers</button>
+      <button class="m-btn" onclick="if(confirm('clear all answers and start over?')){S=fresh();location.hash='';save();render()}">start over</button>
     </div>
-    <p class="muted" style="margin-top:28px;text-align:center"><em>based on marius busen, “what’s your utility function?”</em></p>`;
+    <footer class="m-footer"><div class="m-split"><p class="m-signoff">is this the function you actually want to maximize?</p><span class="m-meta">based on marius busen, “what’s your utility function?”</span></div></footer>`;
 }
 function reflectionsHTML() {
   const rs = FLOW.filter(s => s.type === "reflect" && (S.a[s.id] || "").trim());
@@ -1375,10 +1322,10 @@ function drawResults() {
       <text transform="translate(16 ${(t + h - b) / 2}) rotate(-90)" text-anchor="middle">satisficer ↔ maximizer</text>`;
     [["hanni", .8, 3.6, "var(--hanni)"], ["nanni", .25, 4.2, "var(--nanni)"]].forEach(([n, x, y, c]) => { g += `<g data-tip="<b>${n}</b> from the essay (illustrative)">${SH.circle(sx(x), sy(y), c, 6)}<text x="${sx(x) + 11}" y="${sy(y) + 4}">${n}</text></g>`; });
     if (P.H != null && P.MAX != null) g += `<g data-tip="<b>you</b><br>hanni share ${pct(P.H)}<br>maximizer ${P.MAX.toFixed(1)}/5"><circle class="pulse" cx="${sx(P.H)}" cy="${sy(P.MAX)}" r="16" fill="var(--s1)" opacity=".14"/>${SH.circle(sx(P.H), sy(P.MAX), "var(--s1)", 9)}<text class="strong" x="${sx(P.H) + 15}" y="${sy(P.MAX) + 4}">you</text></g>`;
-    el.innerHTML = `<svg width="${w}" height="${h}" role="img" aria-label="archetype quadrant">${g}</svg>`; }
+    el.innerHTML = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="archetype quadrant">${g}</svg>`; }
 
   { const SER = [["s", "stated", "var(--s1)", "circle"], ["r", "revealed (hours)", "var(--s2)", "square"], ["w", "wished", "var(--s3)", "diamond"]];
-    $("#lg1").innerHTML = SER.map(s => `<span><svg width="16" height="16">${SH[s[3]](8, 8, s[2])}</svg>${s[1]}</span>`).join("");
+    $("#lg1").innerHTML = SER.map(s => `<span><svg width="16" height="16" viewBox="0 0 16 16">${SH[s[3]](8, 8, s[2])}</svg>${s[1]}</span>`).join("");
     const el = $("#c1"); const w = W(el), l = 120, r = 20, rh = 36, t = 6;
     const sr = [...rows].sort((a, b) => b.s - a.s);
     const mx = Math.ceil(Math.max(.1, ...rows.flatMap(x => [x.s, x.r, x.w])) * 10) / 10;
@@ -1387,7 +1334,7 @@ function drawResults() {
     sr.forEach((x, i) => { const y = t + i * rh + rh / 2; const vals = SER.filter(s => P.hasHours || s[0] !== "r").map(s => x[s[0]]);
       g += `<text x="${l - 12}" y="${y + 4}" text-anchor="end">${esc(x.label)}</text><line x1="${sx(Math.min(...vals))}" x2="${sx(Math.max(...vals))}" y1="${y}" y2="${y}" stroke="var(--axis)" stroke-width="2" stroke-linecap="round"/>`;
       SER.forEach(s => { if (s[0] === "r" && !P.hasHours) return; g += `<g class="mk" data-tip="<b>${esc(x.label)}</b><br>${s[1]}: ${pct(x[s[0]])}${s[0] === "r" ? ` (${x.hours}h/wk)` : ""}"><rect x="${sx(x[s[0]]) - 12}" y="${y - 14}" width="24" height="28" fill="transparent"/>${SH[s[3]](sx(x[s[0]]), y, s[2])}</g>`; }); });
-    el.innerHTML = `<svg width="${w}" height="${h}" role="img" aria-label="stated revealed and wished weights">${g}</svg>`;
+    el.innerHTML = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="stated revealed and wished weights">${g}</svg>`;
     $("#t1").innerHTML = `<table><tr><th>variable</th><th>stated</th><th>revealed</th><th>wished</th><th>h/wk</th><th>level</th><th>chase share</th><th>marginal</th></tr>${sr.map(x => `<tr><td>${esc(x.label)}</td><td>${pct(x.s)}</td><td>${P.hasHours ? pct(x.r) : "–"}</td><td>${pct(x.w)}</td><td>${x.hours}</td><td>${x.level}</td><td>${pct(x.p)}</td><td>${pct(x.muShare)}</td></tr>`).join("")}</table>`; }
 
   { const el = $("#c2"); const m = P.mot; const w = W(el), l = 190, r = 44, bh = 18, gp = 14;
@@ -1397,13 +1344,13 @@ function drawResults() {
     data.forEach((d, i) => { if (i === 4) y += 16; if (d[1] == null) { y += bh + gp; return; }
       g += `<g data-tip="<b>${d[0]}</b><br>${d[1].toFixed(1)} of 5"><rect x="0" y="${y - 4}" width="${w}" height="${bh + 8}" fill="transparent"/><text x="${l - 12}" y="${y + bh / 2 + 4}" text-anchor="end">${d[0]}</text>${hbar(l, y, sx(d[1]), bh, d[2])}<text class="strong" x="${l + sx(d[1]) + 8}" y="${y + bh / 2 + 4}">${d[1].toFixed(1)}</text></g>`; y += bh + gp; });
     g += `<line x1="${l}" x2="${l}" y1="0" y2="${y - gp + 4}" stroke="var(--axis)"/>`;
-    el.innerHTML = `<svg width="${w}" height="${y}" role="img" aria-label="motivation types">${g}</svg>`; }
+    el.innerHTML = `<svg width="${w}" height="${y}" viewBox="0 0 ${w} ${y}" role="img" aria-label="motivation types">${g}</svg>`; }
 
   { const el = $("#c3"); const w = W(el), l = 120, bh = 18, gp = 12; const sr = [...rows].sort((a, b) => b.muShare - a.muShare); const mx = sr[0].muShare;
     const sx = v => v / mx * (w - l - 56); let g = "";
     sr.forEach((x, i) => { const y = i * (bh + gp) + 2; g += `<g data-tip="<b>${esc(x.label)}</b><br>${pct(x.muShare)} of marginal utility<br>level ${x.level}/10 · weight ${pct(x.s)} · ${x.p >= .5 ? "chased" : "escaped"}"><rect x="0" y="${y - 4}" width="${w}" height="${bh + 8}" fill="transparent"/><text x="${l - 12}" y="${y + bh / 2 + 4}" text-anchor="end">${esc(x.label)}</text>${hbar(l, y, Math.max(3, sx(x.muShare)), bh, "var(--s1)", i ? .5 : 1)}<text class="strong" x="${l + sx(x.muShare) + 8}" y="${y + bh / 2 + 4}">${pct(x.muShare)}</text></g>`; });
     const h = sr.length * (bh + gp); g += `<line x1="${l}" x2="${l}" y1="0" y2="${h}" stroke="var(--axis)"/>`;
-    el.innerHTML = `<svg width="${w}" height="${h}" role="img" aria-label="marginal utility">${g}</svg>`; }
+    el.innerHTML = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="marginal utility">${g}</svg>`; }
 
   if (P.T.done) { const el = $("#c4"); const w = W(el), h = 230, l = 40, r = 20, t = 14, b = 30; const d = P.T.delta;
     const sx = v => l + v / 20 * (w - l - r), sy = v => t + (1 - v / 100) * (h - t - b);
@@ -1414,7 +1361,7 @@ function drawResults() {
     g += line(0.9, "var(--ref)", "draw") + line(d, "var(--s1)", "draw");
     for (let i = 0; i <= 20; i++) g += `<g data-tip="<b>${i} years</b><br>you: ${Math.round(100 * Math.pow(d, i))}<br>essay example: ${Math.round(100 * Math.pow(.9, i))}"><rect x="${sx(i) - (w - l - r) / 40}" y="${t}" width="${(w - l - r) / 20}" height="${h - t - b}" fill="transparent"/></g>`;
     g += `<text class="strong" x="${sx(20) - 4}" y="${sy(100 * Math.pow(d, 20)) - 9}" text-anchor="end">${Math.round(100 * Math.pow(d, 20))}</text>`;
-    el.innerHTML = `<svg width="${w}" height="${h}" role="img" aria-label="discount curve">${g}</svg>`; }
+    el.innerHTML = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="discount curve">${g}</svg>`; }
 
   { const el = $("#c5"); const w = W(el), l = 130, r = 20, rh = 40, t = 4;
     const data = [["hanni share", S.a.g_hanni != null ? S.a.g_hanni / 100 : null, P.H], ["say vs do", S.a.g_saydo != null ? S.a.g_saydo / 100 : null, P.align]];
@@ -1425,7 +1372,7 @@ function drawResults() {
       if (d[1] != null) g += `<g data-tip="<b>${d[0]}</b><br>your guess: ${pct(d[1])}">${SH.square(sx(d[1]), y, "var(--s2)")}</g>`;
       if (d[2] != null) g += `<g data-tip="<b>${d[0]}</b><br>your answers: ${pct(d[2])}">${SH.circle(sx(d[2]), y, "var(--s1)")}</g>`; });
     const g1 = S.a.g_top, rank = g1 ? P.top.findIndex(x => x.k === g1) + 1 : null;
-    el.innerHTML = `<svg width="${w}" height="${h}" role="img" aria-label="guesses versus answers">${g}</svg>` + (g1 ? `<p class="sub" style="margin-top:8px">top variable: you guessed <b>${esc(V[g1].label)}</b>, it came out <b>#${rank}</b>.</p>` : ""); }
+    el.innerHTML = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="guesses versus answers">${g}</svg>` + (g1 ? `<p class="sub" style="margin-top:8px">top variable: you guessed <b>${esc(V[g1].label)}</b>, it came out <b>#${rank}</b>.</p>` : ""); }
 
   bindTips($("#main"));
 
@@ -1466,6 +1413,7 @@ function shareLink() {
   copyText(location.href.split("#")[0] + "#" + btoa(unescape(encodeURIComponent(JSON.stringify(lite)))), "link copied. it has your answers, not your reflections.");
 }
 
+Margin.defs();  /* the hand-drawn wobble filter used by every illustration */
 let rT; addEventListener("resize", () => { clearTimeout(rT); rT = setTimeout(() => step().type === "results" && drawResults(), 150); });
 render();
 </script>
