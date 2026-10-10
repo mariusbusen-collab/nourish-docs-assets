@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>tune margin</title>
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="fonts-v2.css">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="components.css">
+<style>
+/* ---------- tuner chrome (always neutral, never tuned) ---------- */
+.tp {
+  --c-bg: #111214; --c-2: #1a1b1e; --c-3: #25262a; --c-line: rgba(255,255,255,.08); --c-tx: #e9e9ec; --c-tx2: #a2a3a9; --c-tx3: #6f7076; --c-hi: #8fb4ff;
+  position: fixed; inset: 0 auto 0 0; width: 340px; z-index: 1001; background: var(--c-bg); color: var(--c-tx); overflow-y: auto;
+  font: 13px/1.45 "Inter", system-ui, sans-serif; padding: 18px 18px 120px; scrollbar-width: thin; scrollbar-color: #333 transparent;
+}
+.tp h1 { font: 600 15px/1.2 "Inter", sans-serif; letter-spacing: -0.01em; margin: 0; color: var(--c-tx); }
+.tp .sub { color: var(--c-tx3); font-size: 12px; margin: 4px 0 16px; }
+.tp h2 { font: 500 10.5px/1 "IBM Plex Mono", monospace; text-transform: uppercase; letter-spacing: .12em; color: var(--c-tx3); margin: 22px 0 10px; display: flex; justify-content: space-between; }
+.tp .row { display: grid; grid-template-columns: 96px 1fr 44px; gap: 10px; align-items: center; margin: 7px 0; }
+.tp .row label { color: var(--c-tx2); }
+.tp .row output { text-align: right; font: 11px "IBM Plex Mono", monospace; color: var(--c-tx3); font-variant-numeric: tabular-nums; }
+.tp input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 22px; background: transparent; cursor: pointer; margin: 0; }
+.tp input[type=range]::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: var(--track, var(--c-3)); }
+.tp input[type=range]::-moz-range-track { height: 4px; border-radius: 2px; background: var(--track, var(--c-3)); }
+.tp input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; margin-top: -5px; border-radius: 50%; background: #fff; border: 0; box-shadow: 0 1px 4px rgba(0,0,0,.5); }
+.tp input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: #fff; border: 0; }
+.tp select { width: 100%; background: var(--c-2); color: var(--c-tx); border: 1px solid var(--c-line); border-radius: 7px; padding: 5px 8px; font: inherit; grid-column: 2 / -1; }
+.tp .presets { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+.tp .preset { background: var(--c-2); border: 1px solid var(--c-line); color: var(--c-tx); border-radius: 9px; padding: 8px 6px 7px; cursor: pointer; text-align: left; font: 500 11.5px/1.25 "Inter", sans-serif; }
+.tp .preset .sw { display: flex; gap: 3px; margin-bottom: 7px; }
+.tp .preset .sw i { width: 14px; height: 14px; border-radius: 50%; border: 1px solid rgba(255,255,255,.12); }
+.tp .preset small { display: block; color: var(--c-tx3); font-weight: 400; margin-top: 2px; }
+.tp .preset.is-on { border-color: var(--c-hi); }
+.tp .seg { display: inline-flex; background: var(--c-2); border: 1px solid var(--c-line); border-radius: 8px; padding: 2px; gap: 2px; grid-column: 2 / -1; }
+.tp .seg button { background: none; border: 0; color: var(--c-tx2); padding: 4px 10px; border-radius: 6px; cursor: pointer; font: inherit; font-size: 12px; }
+.tp .seg button[aria-pressed="true"] { background: var(--c-3); color: var(--c-tx); }
+.tp .check { display: flex; align-items: center; gap: 8px; color: var(--c-tx2); margin: 7px 0; cursor: pointer; }
+.tp .check input { accent-color: var(--c-hi); }
+.tp .contrast { display: grid; grid-template-columns: 1fr auto auto; gap: 4px 10px; font: 11px "IBM Plex Mono", monospace; color: var(--c-tx2); background: var(--c-2); border-radius: 9px; padding: 10px 12px; }
+.tp .contrast .ok { color: #7bd88f; } .tp .contrast .no { color: #ff8a7a; }
+.tp .actions { position: fixed; left: 0; bottom: 0; width: 340px; padding: 12px 18px 16px; background: linear-gradient(transparent, var(--c-bg) 30%); display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+.tp .actions button { background: var(--c-3); color: var(--c-tx); border: 0; border-radius: 8px; padding: 9px 6px; cursor: pointer; font: 500 12px "Inter", sans-serif; }
+.tp .actions button.primary { background: #fff; color: #111; }
+.tp .hue { --track: linear-gradient(90deg, oklch(.6 .16 0), oklch(.6 .16 60), oklch(.6 .16 120), oklch(.6 .16 180), oklch(.6 .16 240), oklch(.6 .16 300), oklch(.6 .16 360)); }
+.tp .warm { --track: linear-gradient(90deg, oklch(.9 .03 250), oklch(.94 0 0), oklch(.9 .04 75)); }
+.tp .export { display: none; margin-top: 14px; }
+.tp .export.is-open { display: block; }
+.tp textarea { width: 100%; height: 200px; background: var(--c-2); color: var(--c-tx2); border: 1px solid var(--c-line); border-radius: 9px; font: 10.5px/1.5 "IBM Plex Mono", monospace; padding: 10px; resize: vertical; }
+.tp .note { color: var(--c-tx3); font-size: 11.5px; margin-top: 6px; }
+
+/* ---------- preview ---------- */
+.tv { margin-left: 340px; min-height: 100vh; position: relative; }
+.tv-tabs { position: sticky; top: 0; z-index: 20; display: flex; gap: 4px; justify-content: center; padding: 10px; }
+.tv-tabs .m-seg { box-shadow: var(--shadow-1); background: var(--surface); }
+.tv section[hidden] { display: none; }
+.tv .m-page { max-width: 1060px; }
+@media (max-width: 900px) {
+  .tp { position: fixed; inset: auto 0 0 0; width: 100%; height: 46vh; border-radius: 16px 16px 0 0; box-shadow: 0 -10px 40px rgba(0,0,0,.4); }
+  .tp .actions { width: 100%; }
+  .tv { margin-left: 0; padding-bottom: 48vh; }
+}
+
+/* tuned variables the system doesn't have yet */
+:root { --font-accent: var(--font-display); --dw: 400; --dt: -0.025em; --tiltK: 1; --charSat: 1; --charShow: block; }
+.tv .m-hero, .tv .m-display, .tv h1, .tv h2, .tv .m-h1, .tv .m-h2, .tv .m-h3, .tv h3, .tv .m-index .ttl, .tv .m-signoff, .tv .m-pullquote, .tv .m-poem-title, .tv .m-wordmark, .tv .m-stat .v, .tv .m-lead {
+  font-weight: var(--dw); letter-spacing: var(--dt); }
+.tv .m-lead { letter-spacing: calc(var(--dt) * .3); }
+.tv .m-hero em, .tv .m-display em, .tv h1 em, .tv h2 em, .tv .m-pullquote, .tv .m-signoff, .tv .m-poem-title, .tv .m-wordmark { font-family: var(--font-accent); }
+.tv .m-hero em, .tv .m-display em, .tv h1 em { font-weight: 400; letter-spacing: -0.01em; }
+.tv .m-figure.is-print { rotate: calc(-1.6deg * var(--tiltK)); }
+.tv .m-figure.is-print.tilt-r { rotate: calc(2deg * var(--tiltK)); }
+.tv .m-sticker, .tv [data-art] { filter: saturate(var(--charSat)); display: var(--charShow); }
+.no-marks .m-mark-under::after, .no-marks .m-mark-loop::after, .no-marks .m-mark-swash::before { display: none; }
+.no-mono { --font-mono: var(--font-ui); }
+.no-mono .m-eyebrow, .no-mono .m-meta { letter-spacing: 0.02em; }
+.tv .chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
+.tv .chips div { border-radius: var(--radius-md); border: 1px solid var(--line); overflow: hidden; background: var(--surface); }
+.tv .chips i { display: block; height: 52px; }
+.tv .chips span { display: block; padding: 6px 8px; font: 400 var(--step--2)/1.3 var(--font-mono); color: var(--text-2); }
+.tv .bars { display: grid; gap: 8px; max-width: 420px; }
+.tv .bars div { display: grid; grid-template-columns: 90px 1fr; gap: 10px; align-items: center; font-size: var(--step--1); color: var(--text-2); }
+.tv .bars i { display: block; height: 14px; border-radius: 0 4px 4px 0; }
+.tv .intro { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: var(--space-8); align-items: end; padding-block: var(--space-8) var(--space-7); }
+@media (max-width: 1100px) { .tv .intro { grid-template-columns: 1fr; } }
+.tv .two { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-5); }
+@media (max-width: 760px) { .tv .two { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body class="m-grain">
+
+<aside class="tp" aria-label="tuning controls">
+  <h1>tune margin</h1>
+  <p class="sub">move things until it feels like you. the page on the right is the real system.</p>
+
+  <h2>start from</h2>
+  <div class="presets" id="presets"></div>
+
+  <h2>colour</h2>
+  <div class="row"><label for="warm">warmth</label><input class="warm" type="range" id="warm" min="-1" max="1" step="0.01"><output></output></div>
+  <div class="row"><label for="bgL">paper</label><input type="range" id="bgL" min="0.93" max="0.995" step="0.001"><output></output></div>
+  <div class="row"><label for="inkH">ink hue</label><input class="hue" type="range" id="inkH" min="0" max="360" step="1"><output></output></div>
+  <div class="row"><label for="inkC">ink tint</label><input type="range" id="inkC" min="0" max="0.07" step="0.001"><output></output></div>
+  <div class="row"><label for="aH">accent hue</label><input class="hue" type="range" id="aH" min="0" max="360" step="1"><output></output></div>
+  <div class="row"><label for="aC">accent colour</label><input type="range" id="aC" min="0" max="0.25" step="0.001"><output></output></div>
+  <div class="row"><label for="aL">accent light</label><input type="range" id="aL" min="0.3" max="0.7" step="0.005"><output></output></div>
+  <div class="row"><label>mode</label><div class="seg" id="mode"><button data-v="light" aria-pressed="true">light</button><button data-v="dark" aria-pressed="false">dark</button></div></div>
+
+  <h2>type</h2>
+  <div class="row"><label for="fDisplay">headlines</label><select id="fDisplay"></select></div>
+  <div class="row"><label for="fAccent">italic accent</label><select id="fAccent"></select></div>
+  <div class="row"><label for="fText">reading</label><select id="fText"></select></div>
+  <div class="row"><label for="fUi">interface</label><select id="fUi"></select></div>
+  <div class="row"><label for="dw">headline weight</label><input type="range" id="dw" min="300" max="700" step="10"><output></output></div>
+  <div class="row"><label for="dt">tracking</label><input type="range" id="dt" min="-0.06" max="0.01" step="0.001"><output></output></div>
+  <div class="row"><label for="base">base size</label><input type="range" id="base" min="15" max="20" step="0.5"><output></output></div>
+  <div class="row"><label for="ratio">scale</label><input type="range" id="ratio" min="1.15" max="1.5" step="0.01"><output></output></div>
+  <label class="check"><input type="checkbox" id="mono"> mono labels (dates, eyebrows)</label>
+
+  <h2>shape & feel</h2>
+  <div class="row"><label for="radius">roundness</label><input type="range" id="radius" min="0" max="2" step="0.05"><output></output></div>
+  <div class="row"><label for="shadow">depth</label><input type="range" id="shadow" min="0" max="2" step="0.05"><output></output></div>
+  <div class="row"><label for="grain">grain</label><input type="range" id="grain" min="0" max="0.5" step="0.01"><output></output></div>
+  <div class="row"><label for="tilt">tilt</label><input type="range" id="tilt" min="0" max="2" step="0.05"><output></output></div>
+  <div class="row"><label for="charSat">character colour</label><input type="range" id="charSat" min="0" max="1" step="0.05"><output></output></div>
+  <label class="check"><input type="checkbox" id="chars"> show characters</label>
+  <label class="check"><input type="checkbox" id="marks"> hand-drawn marks</label>
+
+  <h2>contrast <span id="cmode">light</span></h2>
+  <div class="contrast" id="contrast"></div>
+
+  <div class="export" id="export">
+    <h2>export</h2>
+    <textarea id="out" readonly aria-label="exported tokens"></textarea>
+    <p class="note">paste this to claude, or into tokens.css. the json line at the end holds every slider, so it can be restored exactly.</p>
+  </div>
+
+  <div class="actions">
+    <button id="bExport" class="primary">export</button>
+    <button id="bLink">copy link</button>
+    <button id="bReset">reset</button>
+  </div>
+</aside>
+
+<main class="tv">
+  <div class="tv-tabs"><div class="m-seg" id="tabs" role="tablist" aria-label="preview page">
+    <button aria-pressed="true" data-t="home">home</button><button aria-pressed="false" data-t="essay">essay</button><button aria-pressed="false" data-t="poem">poem</button><button aria-pressed="false" data-t="parts">parts</button>
+  </div></div>
+
+  <div class="m-page">
+    <nav class="m-nav" aria-label="preview">
+      <a class="m-wordmark" href="#">marius busen <span class="dot"></span></a>
+      <ul><li><a href="#" aria-current="page">writing</a></li><li><a href="#">poems</a></li><li><a href="#">things</a></li><li><a href="#">about</a></li></ul>
+    </nav>
+
+    <!-- home -->
+    <section data-p="home">
+      <header class="intro">
+        <div>
+          <div class="m-eyebrow">berlin · essays, poems, small things</div>
+          <h1 class="m-hero" style="margin-top:var(--space-4)">i write about how we decide what to <em class="m-mark-under is-static">want</em>.</h1>
+          <p class="m-lead" style="max-width:30em;margin-top:var(--space-5)">i'm marius. by day i'm chief of staff at voize in berlin. before that i invested in startups and studied economics, which is where most of the questions here come from.</p>
+          <div class="m-cluster" style="margin-top:var(--space-5)"><a class="m-btn is-primary" href="#">read the latest essay <span class="arr">→</span></a><a class="m-btn" href="#">all writing</a></div>
+        </div>
+        <figure class="m-figure is-print is-tape tilt-r" style="max-width:250px"><div class="m-ph" data-tone="sky" style="--ratio:4/5"><span class="m-ph-label">[TK] a photo of you</span></div><figcaption>[TK] somewhere warm</figcaption></figure>
+      </header>
+      <div class="m-split" style="margin-bottom:var(--space-4)"><h2>latest writing</h2><span class="m-meta">everything →</span></div>
+      <ul class="m-index is-dimming">
+        <li><a href="#"><span class="yr">2026</span><span class="ttl">what's your utility function?</span><span class="kind">essay</span><span class="go">→</span></a></li>
+        <li><a href="#"><span class="yr">2026</span><span class="ttl">racing</span><span class="kind">short essay</span><span class="go">→</span></a></li>
+        <li><a href="#"><span class="yr">2026</span><span class="ttl">thunderstorms</span><span class="kind">poem</span><span class="go">→</span></a></li>
+      </ul>
+      <div class="two" style="margin-top:var(--space-8)">
+        <a class="m-card is-link" href="#"><div class="m-eyebrow">project · 2026</div><h3 style="margin:var(--space-3) 0 var(--space-2)">the utility function game</h3><p class="m-small" style="color:var(--text-2)">80 cards, 7 chapters. find out if you're hanni or nanni.</p><div style="display:flex;justify-content:flex-end"><span data-art="hanni" style="width:60px"></span></div></a>
+        <a class="m-card is-link" href="#"><div class="m-eyebrow">design system · 2026</div><h3 style="margin:var(--space-3) 0 var(--space-2)">margin</h3><p class="m-small" style="color:var(--text-2)">the paper, ink and small delights this site is made of.</p></a>
+      </div>
+      <footer class="m-footer"><div class="m-split"><p class="m-signoff">thanks for reading. write to me if something here moved you.</p><span class="m-clock" data-tz="Europe/Berlin" data-place="berlin"></span></div></footer>
+    </section>
+
+    <!-- essay -->
+    <section data-p="essay" hidden>
+      <header style="padding-block:var(--space-8) var(--space-6);max-width:46rem">
+        <div class="m-eyebrow">essay · 12 min read · october 2026</div>
+        <h1 class="m-display" style="margin-top:var(--space-4)">what's your <em>utility function?</em></h1>
+        <p class="m-lead" style="max-width:32em;margin-top:var(--space-5)">two people make the same choices for opposite reasons. a walk through marginal utility, opportunity cost and sunk costs.</p>
+      </header>
+      <div class="m-prose m-with-margin">
+        <p class="m-dropcap">hanni and nanni are both 32. they live in the same city, work in similar jobs, earn roughly the same amount of money, and spend an arguably unhealthy number of hours staring at their laptops.</p>
+        <p>i studied economics, so i spent way too much time learning about and suffering through utility functions.<button class="m-sn-ref" aria-label="note"></button><span class="m-sidenote">standard microeconomic theory models individuals as making choices that maximize their utility, subject to constraints.</span> the basic idea is relatively simple.</p>
+      </div>
+      <blockquote class="m-pullquote" style="max-width:var(--measure-wide)">hanni works because working makes her happy. nanni works because not working makes her unhappy.</blockquote>
+      <div class="m-prose">
+        <h2>the price of one more</h2>
+        <p>the first slice when you're starving is wonderful. the second is still pretty good. by the sixth, you're probably starting to question your decisions.</p>
+        <p class="m-math-block">d²U / dx² &lt; 0</p>
+        <p>nanni receives the same promotion. she doesn't feel enormous satisfaction. she feels <span class="m-mark-swash is-static">relief</span>.</p>
+      </div>
+      <figure class="m-figure" style="max-width:var(--measure-wide);margin-top:var(--space-7)"><div class="m-ph" data-tone="sky" style="--ratio:16/7"></div><figcaption><span class="n">fig. 1</span><span>a figure with a numbered caption.</span></figcaption></figure>
+    </section>
+
+    <!-- poem -->
+    <section data-p="poem" hidden>
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:var(--space-8);padding-block:var(--space-8)">
+        <aside><div class="m-eyebrow">poem</div><p class="m-meta" style="margin-top:var(--space-3)">marius busen</p></aside>
+        <article class="m-poem" style="max-width:30em">
+          <h1 class="m-poem-title">thunderstorms</h1>
+          <p class="m-meta" style="margin-bottom:var(--space-6)">&nbsp;</p>
+          <p class="m-stanza"><span>mum asks <em>how are you?</em></span><span>i’m good, mum. lying to her, lying to me.</span></p>
+          <p class="m-stanza"><span>see mum, my depression is a shapeshifter.</span><span>most days, it is like the sun on a cloudy day. you know it is there, but you don’t feel or see it.</span></p>
+          <p class="m-stanza"><span>mum asks <em>aren’t you afraid of dying?</em></span><span>no mum, sometimes i am afraid of living.</span></p>
+          <span data-art="end"></span>
+        </article>
+      </div>
+    </section>
+
+    <!-- parts -->
+    <section data-p="parts" hidden style="padding-block:var(--space-7)">
+      <h2 style="margin-bottom:var(--space-4)">roles</h2>
+      <div class="chips" id="chips"></div>
+      <h2 style="margin:var(--space-7) 0 var(--space-4)">controls</h2>
+      <div class="m-stack" style="--stack:var(--space-4)">
+        <div class="m-cluster"><a class="m-btn is-primary" href="#">primary <span class="arr">→</span></a><a class="m-btn" href="#">secondary</a><a class="m-btn is-ghost" href="#">← ghost</a><span class="m-tag">essay</span><span class="m-tag is-on">poem</span><span class="m-kbd">⌘ K</span></div>
+        <div class="m-seg" role="group" aria-label="example"><button aria-pressed="true">all</button><button aria-pressed="false">essays</button><button aria-pressed="false">poems</button></div>
+        <div class="two"><div class="m-field"><label for="x1">your name</label><input class="m-input" id="x1" placeholder="hanni"></div><div class="m-field"><label for="x2">one line</label><input class="m-input is-line" id="x2" placeholder="i want to want…"></div></div>
+      </div>
+      <h2 style="margin:var(--space-7) 0 var(--space-4)">numbers, quotes, marks</h2>
+      <div class="two">
+        <div class="m-stat"><div class="k">first places available</div><div class="v">8,000,000,000</div><div class="d">one for every human.</div></div>
+        <blockquote class="m-quote">hanni works because working makes her happy. nanni works because not working makes her unhappy.</blockquote>
+      </div>
+      <div class="m-stack" style="--stack:var(--space-3);margin-top:var(--space-6)">
+        <p class="m-h2">a word worth <span class="m-mark-under is-static">underlining</span>, one <span class="m-mark-loop is-static">circled</span> idea</p>
+        <div class="m-cluster" style="--cluster:var(--space-5);align-items:flex-end"><span data-art="hanni" style="width:90px"></span><span data-art="nanni" style="width:90px"></span><span data-art="star"></span></div>
+      </div>
+      <h2 style="margin:var(--space-7) 0 var(--space-4)">data</h2>
+      <div class="bars"><div>stated<i style="width:80%;background:var(--data-1)"></i></div><div>revealed<i style="width:55%;background:var(--data-2)"></i></div><div>wished<i style="width:68%;background:var(--data-3)"></i></div></div>
+      <p class="m-meta" style="margin-top:var(--space-3)">data colours stay fixed. they are validated for colour blindness and don't follow the sliders.</p>
+    </section>
+  </div>
+</main>
+
+<script src="margin.js"></script>
+<script>
+/* =========================================================================
+   tune: sliders → oklch roles → css variables on :root
+   ========================================================================= */
+const FONTS = {
+  "Instrument Sans": '"Instrument Sans", "Inter", system-ui, sans-serif',
+  "Bricolage Grotesque": '"Bricolage Grotesque", "Inter", system-ui, sans-serif',
+  "Inter": '"Inter", system-ui, sans-serif',
+  "Fraunces": '"Fraunces", Georgia, serif',
+  "Instrument Serif": '"Instrument Serif", Georgia, serif',
+  "Source Serif 4": '"Source Serif 4", Georgia, serif',
+};
+const PICK = {
+  fDisplay: ["Instrument Sans", "Bricolage Grotesque", "Inter", "Fraunces", "Instrument Serif"],
+  fAccent:  ["Instrument Serif", "Fraunces", "Source Serif 4", "same as headlines"],
+  fText:    ["Source Serif 4", "Fraunces", "Instrument Sans", "Inter"],
+  fUi:      ["Instrument Sans", "Inter", "Bricolage Grotesque"],
+};
+const PRESETS = {
+  "v1": { label: "v1 · paper", note: "where we are", warm: 1, bgL: .945, inkH: 60, inkC: .015, aH: 38, aC: .155, aL: .56, fDisplay: "Fraunces", fAccent: "Fraunces", fText: "Fraunces", fUi: "Inter", dw: 400, dt: -.025, base: 17, ratio: 1.3, mono: true, radius: 1, shadow: 1, grain: .38, tilt: 1, charSat: 1, chars: true, marks: true },
+  "ink": { label: "v2 · ink & blue", note: "warm, modern", warm: .28, bgL: .972, inkH: 262, inkC: .03, aH: 262, aC: .17, aL: .52, fDisplay: "Instrument Sans", fAccent: "Instrument Serif", fText: "Source Serif 4", fUi: "Instrument Sans", dw: 520, dt: -.038, base: 17, ratio: 1.32, mono: true, radius: .6, shadow: .6, grain: .14, tilt: .5, charSat: .45, chars: true, marks: true },
+  "stone": { label: "v2 · stone", note: "quieter, cooler", warm: .06, bgL: .968, inkH: 268, inkC: .022, aH: 268, aC: .2, aL: .46, fDisplay: "Bricolage Grotesque", fAccent: "Instrument Serif", fText: "Source Serif 4", fUi: "Inter", dw: 480, dt: -.032, base: 17, ratio: 1.3, mono: false, radius: .35, shadow: .3, grain: .08, tilt: 0, charSat: 0, chars: false, marks: false },
+};
+const KEY = "m-tune";
+let P = load() || { ...PRESETS.ink, preset: "ink", mode: "light" };
+
+const ok = (L, C, H, a) => `oklch(${(+L).toFixed(3)} ${(+C).toFixed(3)} ${(+H).toFixed(1)}${a != null ? " / " + a : ""})`;
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+function roles(mode) {
+  const hN = P.warm >= 0 ? 75 : 250, cN = Math.abs(P.warm) * 0.022;
+  const s = P.shadow;
+  if (mode === "light") {
+    const L = P.bgL;
+    return {
+      "--bg": ok(L, cN, hN), "--surface": ok(Math.min(.996, L + .018), cN * .6, hN), "--surface-sunk": ok(L - .03, cN * 1.1, hN), "--surface-press": ok(L - .065, cN * 1.2, hN),
+      "--line": ok(.25, P.inkC, P.inkH, .12), "--line-strong": ok(L - .14, cN * 1.2, hN), "--chart-grid": ok(L - .06, cN, hN), "--chart-axis": ok(L - .14, cN, hN),
+      "--text": ok(.2, P.inkC, P.inkH), "--text-2": ok(.42, P.inkC * .8, P.inkH), "--text-3": ok(.52, P.inkC * .6, P.inkH),
+      "--accent": ok(P.aL, P.aC, P.aH), "--accent-text": ok(Math.min(P.aL, .5), P.aC, P.aH), "--link-mark": ok(P.aL, P.aC, P.aH), "--focus": ok(P.aL, P.aC, P.aH),
+      "--highlight": ok(.93, P.aC * .32, P.aH), "--selection": ok(.9, P.aC * .4, P.aH), "--on-ink": ok(Math.min(.996, L + .018), cN * .6, hN),
+      "--shadow-1": `0 1px 0 ${ok(.3, .02, hN, (.04 * s).toFixed(3))}, 0 10px 30px -14px ${ok(.3, .04, hN, (.24 * s).toFixed(3))}`,
+      "--shadow-2": `0 2px 0 ${ok(.3, .02, hN, (.05 * s).toFixed(3))}, 0 22px 44px -16px ${ok(.3, .04, hN, (.34 * s).toFixed(3))}`,
+      "--grain-opacity": P.grain, "--grain-blend": "multiply",
+    };
+  }
+  const hD = P.inkC > .01 ? P.inkH : hN, cD = Math.max(cN * .6, P.inkC * .45);
+  const aLd = Math.min(.74, P.aL + .16);
+  return {
+    "--bg": ok(.175, cD, hD), "--surface": ok(.215, cD, hD), "--surface-sunk": ok(.245, cD, hD), "--surface-press": ok(.285, cD, hD),
+    "--line": ok(.95, .01, hN, .1), "--line-strong": ok(.34, cD, hD), "--chart-grid": ok(.26, cD, hD), "--chart-axis": ok(.36, cD, hD),
+    "--text": ok(.945, cN * .5, hN), "--text-2": ok(.8, cN * .5, hN), "--text-3": ok(.67, cN * .5, hN),
+    "--accent": ok(aLd, P.aC, P.aH), "--accent-text": ok(aLd, P.aC, P.aH), "--link-mark": ok(aLd, P.aC, P.aH), "--focus": ok(aLd, P.aC, P.aH),
+    "--highlight": ok(.33, P.aC * .45, P.aH), "--selection": ok(.36, P.aC * .5, P.aH), "--on-ink": ok(.175, cD, hD),
+    "--shadow-1": `0 1px 0 rgba(0,0,0,${(.2 * s).toFixed(2)}), 0 12px 32px -14px rgba(0,0,0,${(.6 * s).toFixed(2)})`,
+    "--shadow-2": `0 2px 0 rgba(0,0,0,${(.2 * s).toFixed(2)}), 0 22px 44px -16px rgba(0,0,0,${(.7 * s).toFixed(2)})`,
+    "--grain-opacity": (P.grain * .6).toFixed(3), "--grain-blend": "soft-light",
+  };
+}
+function typeVars() {
+  const steps = {};
+  for (let n = -2; n <= 6; n++) {
+    const max = P.base * Math.pow(P.ratio, n < 0 ? n * 0.5 : n);     // size at 1280px wide; small steps shrink gently
+    const min = n >= 3 ? max * (0.56 + 0.06 * (6 - n)) : max * 0.92;   // size at 320px; big steps shrink more
+    const slope = (max - min) / 960, icpt = min - slope * 320;
+    steps[`--step-${n}`] = `clamp(${(min / 16).toFixed(3)}rem, ${(icpt / 16).toFixed(3)}rem + ${(slope * 100).toFixed(3)}vw, ${(max / 16).toFixed(3)}rem)`;
+  }
+  const acc = P.fAccent === "same as headlines" ? FONTS[P.fDisplay] : FONTS[P.fAccent];
+  return { ...steps,
+    "--font-display": FONTS[P.fDisplay], "--font-text": FONTS[P.fText], "--font-ui": FONTS[P.fUi], "--font-accent": acc,
+    "--dw": P.dw, "--dt": P.dt + "em", "--tracking-display": P.dt + "em", "--tracking-heading": (P.dt * .6).toFixed(3) + "em",
+    "--radius-sm": (6 * P.radius).toFixed(1) + "px", "--radius-md": (12 * P.radius).toFixed(1) + "px", "--radius-lg": (20 * P.radius).toFixed(1) + "px",
+    "--tiltK": P.tilt, "--charSat": P.charSat, "--charShow": P.chars ? "block" : "none" };
+}
+function apply() {
+  const root = document.documentElement;
+  root.dataset.theme = P.mode;
+  const vars = { ...roles(P.mode), ...typeVars() };
+  for (const [k, v] of Object.entries(vars)) root.style.setProperty(k, v);
+  root.classList.toggle("no-marks", !P.marks);
+  root.classList.toggle("no-mono", !P.mono);
+  syncControls(); contrast(); chips(); save();
+  if (document.getElementById("export").classList.contains("is-open")) document.getElementById("out").value = exportCSS();
+}
+
+/* ---------- contrast check: render each colour to a pixel, read it back as sRGB ---------- */
+const cv = document.createElement("canvas"); cv.width = cv.height = 1; const cx = cv.getContext("2d", { willReadFrequently: true });
+function rgb(col) { cx.clearRect(0, 0, 1, 1); cx.fillStyle = "#000"; cx.fillStyle = col; cx.fillRect(0, 0, 1, 1); return [...cx.getImageData(0, 0, 1, 1).data].slice(0, 3); }
+function lum([r, g, b]) { const f = v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }; return .2126 * f(r) + .7152 * f(g) + .0722 * f(b); }
+function ratio(a, b) { const x = lum(rgb(a)), y = lum(rgb(b)); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); }
+function contrast() {
+  const r = roles(P.mode); document.getElementById("cmode").textContent = P.mode;
+  const rows = [["text", "--text", 4.5], ["text-2", "--text-2", 4.5], ["text-3 (small)", "--text-3", 4.5], ["accent as text", "--accent-text", 4.5], ["button text", "--on-ink", 4.5, "--text"]];
+  document.getElementById("contrast").innerHTML = rows.map(([n, k, min, bg]) => { const v = ratio(r[k], r[bg || "--bg"]); return `<span>${n}</span><span>${v.toFixed(1)}:1</span><span class="${v >= min ? "ok" : "no"}">${v >= min ? "AA" : "low"}</span>`; }).join("");
+}
+function chips() {
+  const el = document.getElementById("chips"); if (!el) return;
+  const names = ["bg", "surface", "surface-sunk", "line-strong", "text", "text-2", "text-3", "accent", "accent-text", "highlight"];
+  el.innerHTML = names.map(n => `<div><i style="background:var(--${n})"></i><span>--${n}</span></div>`).join("");
+}
+
+/* ---------- controls ---------- */
+const NUM = ["warm", "bgL", "inkH", "inkC", "aH", "aC", "aL", "dw", "dt", "base", "ratio", "radius", "shadow", "grain", "tilt", "charSat"];
+const FMT = { warm: v => (v > 0 ? "+" : "") + (+v).toFixed(2), bgL: v => (+v).toFixed(3), inkH: v => v + "°", aH: v => v + "°", inkC: v => (+v).toFixed(3), aC: v => (+v).toFixed(3), aL: v => (+v).toFixed(2), dw: v => v, dt: v => (+v).toFixed(3), base: v => v + "px", ratio: v => (+v).toFixed(2), radius: v => "×" + (+v).toFixed(2), shadow: v => "×" + (+v).toFixed(2), grain: v => (+v).toFixed(2), tilt: v => "×" + (+v).toFixed(2), charSat: v => Math.round(v * 100) + "%" };
+function syncControls() {
+  NUM.forEach(k => { const el = document.getElementById(k); if (document.activeElement !== el) el.value = P[k]; el.nextElementSibling.textContent = FMT[k](P[k]); });
+  Object.keys(PICK).forEach(k => (document.getElementById(k).value = P[k]));
+  ["mono", "chars", "marks"].forEach(k => (document.getElementById(k).checked = !!P[k]));
+  document.querySelectorAll("#mode button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === P.mode)));
+  document.querySelectorAll(".preset").forEach(b => b.classList.toggle("is-on", b.dataset.k === P.preset));
+  document.getElementById("aH").style.setProperty("--track", `linear-gradient(90deg, ${[0, 60, 120, 180, 240, 300, 360].map(h => ok(P.aL, Math.max(.05, P.aC), h)).join(",")})`);
+}
+function init() {
+  Object.entries(PICK).forEach(([k, opts]) => (document.getElementById(k).innerHTML = opts.map(o => `<option>${o}</option>`).join("")));
+  document.getElementById("presets").innerHTML = Object.entries(PRESETS).map(([k, p]) => {
+    const r = (() => { const save = P; P = { ...p }; const x = roles("light"); P = save; return x; })();
+    return `<button class="preset" data-k="${k}"><span class="sw"><i style="background:${r["--bg"]}"></i><i style="background:${r["--text"]}"></i><i style="background:${r["--accent"]}"></i></span>${p.label}<small>${p.note}</small></button>`;
+  }).join("");
+  document.querySelectorAll(".preset").forEach(b => b.addEventListener("click", () => { P = { ...PRESETS[b.dataset.k], preset: b.dataset.k, mode: P.mode }; apply(); }));
+  NUM.forEach(k => document.getElementById(k).addEventListener("input", e => { P[k] = +e.target.value; P.preset = null; apply(); }));
+  Object.keys(PICK).forEach(k => document.getElementById(k).addEventListener("change", e => { P[k] = e.target.value; P.preset = null; apply(); }));
+  ["mono", "chars", "marks"].forEach(k => document.getElementById(k).addEventListener("change", e => { P[k] = e.target.checked; P.preset = null; apply(); }));
+  document.querySelectorAll("#mode button").forEach(b => b.addEventListener("click", () => { P.mode = b.dataset.v; apply(); }));
+  document.querySelectorAll("#tabs button").forEach(b => b.addEventListener("click", () => {
+    document.querySelectorAll("#tabs button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+    document.querySelectorAll("[data-p]").forEach(s => (s.hidden = s.dataset.p !== b.dataset.t));
+  }));
+  document.getElementById("bExport").addEventListener("click", () => {
+    const ex = document.getElementById("export"); ex.classList.add("is-open"); const out = document.getElementById("out"); out.value = exportCSS();
+    out.select(); (navigator.clipboard ? navigator.clipboard.writeText(out.value) : Promise.reject()).then(() => Margin.toast("tokens copied"), () => {});
+    ex.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  });
+  document.getElementById("bLink").addEventListener("click", () => {
+    const url = location.href.split("#")[0] + "#" + btoa(JSON.stringify(P));
+    (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(() => Margin.toast("link copied"), () => prompt("copy:", url));
+  });
+  document.getElementById("bReset").addEventListener("click", () => { P = { ...PRESETS.ink, preset: "ink", mode: P.mode }; apply(); });
+  // reading the hash once, so a copied link restores the exact state
+  apply();
+}
+
+/* ---------- export ---------- */
+function block(obj, indent = "  ") { return Object.entries(obj).map(([k, v]) => `${indent}${k}: ${v};`).join("\n"); }
+function exportCSS() {
+  const t = typeVars(); delete t["--dw"]; delete t["--dt"]; delete t["--tiltK"]; delete t["--charSat"]; delete t["--charShow"];
+  const light = roles("light"), dark = roles("dark");
+  return `/* margin · tuned ${new Date().toISOString().slice(0, 10)}${P.preset ? " · from preset " + P.preset : ""}
+   headline weight ${P.dw}, tracking ${P.dt}em · base ${P.base}px, scale ${P.ratio} · mono labels ${P.mono ? "on" : "off"}
+   characters ${P.chars ? "on" : "off"} (colour ${Math.round(P.charSat * 100)}%) · marks ${P.marks ? "on" : "off"} · tilt ×${P.tilt} */
+:root {
+${block(t)}
+${block(light)}
+}
+:root[data-theme="dark"] {
+${block(dark)}
+}
+/* tune:${JSON.stringify(P)} */`;
+}
+
+function save() { try { localStorage.setItem(KEY, JSON.stringify(P)); } catch (e) {} }
+function load() {
+  try { if (location.hash.length > 1) return JSON.parse(atob(location.hash.slice(1))); } catch (e) {}
+  try { const r = localStorage.getItem(KEY); return r ? JSON.parse(r) : null; } catch (e) { return null; }
+}
+init();
+</script>
+</body>
+</html>

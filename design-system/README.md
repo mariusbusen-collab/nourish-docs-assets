@@ -15,6 +15,8 @@ Open `index.html` for the living style guide. `dist/` has every page as one self
 | `components.css` | nav, footer, buttons, tags, index lists, cards, figures, sidenotes, quotes, stats, fields, marks, characters, toast, tooltip, hover preview, reveal, clock |
 | `margin.js` | behaviour, no dependencies: theme toggle, scroll reveal, sidenotes on mobile, hover preview, filters, clock, toast, copy, characters |
 | `index.html` | the style guide |
+| `tune.html` | live tuning page: sliders for colour, type, shape and feel on real templates; exports tokens |
+| `fonts-v2.css` | v2 font candidates (Instrument Sans/Serif, Bricolage Grotesque, Source Serif 4), loaded only by `tune.html` |
 | `templates/` | home, writing (index), essay, poem, project |
 | `build.py` | writes `tokens.json` and bundles each page into `dist/` |
 | `SKILL.md` | instructions for Claude to apply the system |

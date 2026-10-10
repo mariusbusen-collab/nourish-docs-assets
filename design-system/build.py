@@ -10,7 +10,7 @@ import base64, mimetypes, pathlib, re
 here = pathlib.Path(__file__).parent
 dist = here / "dist"
 
-PAGES = [here / "index.html", *sorted((here / "templates").glob("*.html"))]
+PAGES = [here / "index.html", here / "tune.html", *sorted((here / "templates").glob("*.html"))]
 
 def data_uri(path):
     mime = mimetypes.guess_type(path.name)[0] or ("font/woff2" if path.suffix == ".woff2" else "application/octet-stream")
