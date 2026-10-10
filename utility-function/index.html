@@ -165,11 +165,11 @@ em, .it { font-family: var(--serif); font-style: italic; font-weight: 380; }
 .paircard {
   min-height: 190px; border-radius: 18px; border: 1px solid var(--border); background: var(--surface-1); box-shadow: var(--shadow);
   padding: 24px 22px; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 8px; text-align: left;
-  transition: transform .3s var(--ease-out), box-shadow .3s, background .2s, border-color .2s;
+  transition: rotate .3s var(--ease-out), translate .3s var(--ease-out), box-shadow .3s, background .2s, border-color .2s;
 }
-.paircard:nth-child(1) { transform: rotate(-1.4deg); }
-.paircard:nth-child(3) { transform: rotate(1.2deg); }
-.paircard:hover { transform: rotate(0) translateY(-4px); box-shadow: var(--shadow-lift); }
+.paircard:nth-child(1) { rotate: -1.4deg; }
+.paircard:nth-child(3) { rotate: 1.2deg; }
+.paircard:hover { rotate: 0deg; translate: 0 -4px; box-shadow: var(--shadow-lift); }
 .paircard .t { font-family: var(--serif); font-size: 23px; line-height: 1.15; font-weight: 420; letter-spacing: -0.01em; }
 .paircard .s { font-size: 13px; color: var(--ink-3); }
 .paircard.sel { background: var(--ink); color: var(--surface-1); border-color: var(--ink); }
@@ -1694,7 +1694,7 @@ async function go(d) {
   save(); render(d);
   busy = false;
   if (step().type === "results") window.scrollTo({ top: 0 });
-  else if (window.scrollY > 120) window.scrollTo({ top: 0, behavior: "smooth" });
+  else if (window.scrollY > 0) window.scrollTo({ top: 0, behavior: window.scrollY > 400 ? "auto" : "smooth" });
 }
 function answer(id, val, opts = {}) {
   const before = statedWeights();
@@ -1770,7 +1770,7 @@ const R = {
     const c = CHAPTERS[s.ch - 1];
     return `<div class="chhead"><div><div class="kicker">chapter ${c.n} of 7</div><div class="chnum">${c.n}</div></div>${icon(c.n)}</div>
       <h1 style="margin-bottom:6px">${esc(c.title)}</h1>
-      <div class="quote">"${esc(c.quote)}"</div>
+      <div class="quote">“${esc(c.quote)}”</div>
       <p class="sub">${esc(c.intro)}</p>
       <div class="spacer"></div>
       <div><span class="unlockline">🔒 unlocks <b>${esc(c.unlock)}</b> · ${CH_STEPS[c.n - 1].length - 1} cards</span></div>
@@ -2100,7 +2100,7 @@ function renderPanel() {
       ${reached(5) && P.T.done ? `<p class="muted" style="margin:6px 0 0">over time: Σ δ<sup>t</sup>·U<sub>t</sub>, δ ≈ ${P.T.delta.toFixed(2)}</p>` : ""}
     </div>
     <div class="pcard"><h3>variables</h3>
-      ${sorted.map(r => `<div class="vbar"><span>${esc(r.label)}</span><span class="tr"><i style="width:${(r.s / maxW) * 100}%;opacity:${0.28 + 0.72 * r.clarity}"></i></span><span>${pct(r.s)}</span></div>`).join("")}
+      ${sorted.map(r => `<div class="vbar"><span>${esc(r.label)}</span><span class="tr"><i style="width:${(r.s / maxW) * 100}%;opacity:${0.45 + 0.55 * r.clarity}"></i></span><span>${pct(r.s)}</span></div>`).join("")}
       <p class="muted" style="margin:10px 0 0;font-size:12px">faint bars are still unclear. more answers sharpen them.</p>
     </div>
     <div class="pcard"><h3>traits</h3>
@@ -2209,7 +2209,7 @@ function RESULTS() {
       <button class="btn" onclick="S.i=1;save();render()">replay answers</button>
       <button class="btn" onclick="if(confirm('clear all answers and start over?')){S=fresh();location.hash='';save();render()}">start over</button>
     </div>
-    <p class="muted" style="margin-top:28px;text-align:center"><em>based on marius busen, "what's your utility function?"</em></p>`;
+    <p class="muted" style="margin-top:28px;text-align:center"><em>based on marius busen, “what’s your utility function?”</em></p>`;
 }
 function reflectionsHTML() {
   const rs = FLOW.filter(s => s.type === "reflect" && (S.a[s.id] || "").trim());
@@ -2334,6 +2334,7 @@ function drawResults() {
       e.target.querySelectorAll(".draw").forEach(p => { const len = p.getTotalLength(); p.style.strokeDasharray = len; anim(p, { strokeDashoffset: [len, 0] }, { duration: 1.4, ease: [0.22, 1, 0.36, 1] }); });
     }), { threshold: 0.15 });
     document.querySelectorAll(".rcard, .tile").forEach(c => { c.style.opacity = 0; io.observe(c); });
+    addEventListener("beforeprint", () => document.querySelectorAll(".rcard, .tile").forEach(c => (c.style.opacity = 1)), { once: true });
   }
 }
 
