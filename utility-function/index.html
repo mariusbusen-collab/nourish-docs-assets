@@ -9,25 +9,29 @@
   color-scheme: light;
   --page: #f9f9f7;
   --surface-1: #fcfcfb;
+  --surface-2: #f3f2ee;
   --text-primary: #0b0b0b;
   --text-secondary: #52514e;
   --text-muted: #898781;
   --grid: #e1e0d9;
   --axis: #c3c2b7;
   --border: rgba(11,11,11,0.10);
-  --series-1: #2a78d6;   /* stated */
-  --series-2: #eb6834;   /* revealed */
-  --series-3: #1baf7a;   /* wished */
-  --pull: #2a78d6;       /* diverging: approach */
-  --push: #e34948;       /* diverging: avoidance */
-  --neutral: #f0efec;
-  --accent-wash: rgba(42,120,214,0.08);
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --pull: #2a78d6;
+  --push: #e34948;
+  --ref: #898781;
+  --wash: rgba(42,120,214,0.08);
+  --wash-strong: rgba(42,120,214,0.16);
+  --good: #006300;
 }
 @media (prefers-color-scheme: dark) {
   :root:where(:not([data-theme="light"])) {
     color-scheme: dark;
     --page: #0d0d0d;
     --surface-1: #1a1a19;
+    --surface-2: #232321;
     --text-primary: #f0efec;
     --text-secondary: #c3c2b7;
     --grid: #2c2c2a;
@@ -38,603 +42,1118 @@
     --series-3: #199e70;
     --pull: #3987e5;
     --push: #e66767;
-    --neutral: #383835;
-    --accent-wash: rgba(57,135,229,0.14);
+    --wash: rgba(57,135,229,0.12);
+    --wash-strong: rgba(57,135,229,0.24);
+    --good: #0ca30c;
   }
 }
 * { box-sizing: border-box; }
-body {
-  margin: 0; background: var(--page); color: var(--text-primary);
-  font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
-}
-main { max-width: 760px; margin: 0 auto; padding: 32px 20px 80px; }
-h1 { font-size: 28px; line-height: 1.2; margin: 0 0 8px; letter-spacing: -0.01em; }
+html, body { margin: 0; }
+body { background: var(--page); color: var(--text-primary); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+button { font: inherit; color: inherit; }
+.app { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 32px; max-width: 1120px; margin: 0 auto; padding: 24px 24px 80px; }
+@media (max-width: 1000px) { .app { grid-template-columns: 1fr; padding: 16px 16px 96px; } aside.panel { display: none; } aside.panel.open { display: block; } }
+h1 { font-size: 30px; line-height: 1.15; margin: 0 0 10px; letter-spacing: -0.015em; }
 h2 { font-size: 20px; margin: 0 0 6px; }
-h3 { font-size: 15px; margin: 24px 0 4px; }
+h3 { font-size: 13px; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); font-weight: 600; }
 p { margin: 0 0 12px; }
 .sub { color: var(--text-secondary); }
 .muted { color: var(--text-muted); font-size: 13px; }
-.card {
-  background: var(--surface-1); border: 1px solid var(--border);
-  border-radius: 12px; padding: 24px; margin: 16px 0;
-}
-.progress { display: flex; gap: 4px; margin: 20px 0 8px; }
-.progress span { flex: 1; height: 3px; border-radius: 2px; background: var(--grid); }
-.progress span.on { background: var(--series-1); }
-.step-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
-.quote { border-left: 2px solid var(--axis); padding: 2px 0 2px 14px; margin: 16px 0; color: var(--text-secondary); }
-.quote b { color: var(--text-primary); }
 
-/* controls */
-.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
-.chip {
-  border: 1px solid var(--border); background: transparent; color: var(--text-primary);
-  border-radius: 999px; padding: 6px 14px; font: inherit; font-size: 14px; cursor: pointer;
+/* top bar */
+.topbar { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; min-height: 32px; }
+.chapters { display: flex; gap: 6px; flex: 1; }
+.chapters span { flex: 1; height: 4px; border-radius: 2px; background: var(--grid); position: relative; overflow: hidden; }
+.chapters span i { position: absolute; inset: 0 auto 0 0; background: var(--series-1); border-radius: 2px; transition: width .3s ease; }
+.toplabel { font-size: 12px; color: var(--text-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.iconbtn { background: none; border: 1px solid var(--border); border-radius: 8px; padding: 4px 10px; cursor: pointer; font-size: 13px; color: var(--text-secondary); }
+
+/* the card */
+.stage { position: relative; }
+.card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 16px; padding: 32px; min-height: 420px; display: flex; flex-direction: column; }
+@media (max-width: 600px) { .card { padding: 22px; min-height: 380px; } }
+.card.enter { animation: enter .28s ease both; }
+@keyframes enter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.kicker { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 14px; }
+.prompt { font-size: 14px; color: var(--text-secondary); margin-bottom: 8px; }
+.q { font-size: 24px; line-height: 1.35; font-weight: 500; margin: 0 0 28px; letter-spacing: -0.005em; }
+@media (max-width: 600px) { .q { font-size: 20px; } }
+.spacer { flex: 1; }
+.scale { display: grid; gap: 8px; }
+.scale.h5 { grid-template-columns: repeat(5, 1fr); }
+.scale.h6 { grid-template-columns: repeat(6, 1fr); }
+@media (max-width: 700px) { .scale.h5, .scale.h6 { grid-template-columns: 1fr; } }
+.opt {
+  border: 1px solid var(--border); background: var(--surface-1); border-radius: 12px; padding: 14px 10px;
+  cursor: pointer; text-align: center; font-size: 14px; line-height: 1.3; transition: background .12s, border-color .12s, transform .08s;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 64px;
 }
-.chip[aria-pressed="true"] { background: var(--accent-wash); border-color: var(--series-1); }
-.chip small { color: var(--text-muted); }
-.row { display: grid; grid-template-columns: 150px 1fr 44px; gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--grid); }
-.row:last-child { border-bottom: 0; }
-.row .name { font-weight: 600; font-size: 14px; }
-.row .name small { display: block; font-weight: 400; color: var(--text-muted); font-size: 12px; line-height: 1.3; }
-.row output { text-align: right; font-variant-numeric: tabular-nums; color: var(--text-secondary); font-size: 14px; }
-.row2 { display: grid; grid-template-columns: 150px 1fr 1fr; gap: 16px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--grid); }
-.row2:last-child { border-bottom: 0; }
-.row2 label { font-size: 12px; color: var(--text-muted); display: block; }
-input[type=range] { width: 100%; accent-color: var(--series-1); }
-input[type=number] {
-  width: 100%; font: inherit; padding: 6px 8px; border-radius: 8px;
-  border: 1px solid var(--border); background: var(--page); color: var(--text-primary);
+.opt:hover { background: var(--wash); border-color: var(--series-1); }
+.opt:active { transform: scale(0.98); }
+.opt.sel { background: var(--wash-strong); border-color: var(--series-1); font-weight: 600; }
+.opt kbd { font: 11px system-ui; color: var(--text-muted); border: 1px solid var(--border); border-radius: 4px; padding: 0 5px; }
+@media (max-width: 700px) { .opt { flex-direction: row; justify-content: space-between; min-height: 48px; padding: 12px 16px; text-align: left; } }
+.opts-col { display: grid; gap: 8px; }
+.opts-col .opt { flex-direction: row; justify-content: space-between; text-align: left; padding: 14px 18px; min-height: 52px; }
+.pairgrid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: stretch; }
+.pairgrid .or { align-self: center; color: var(--text-muted); font-size: 13px; }
+.pairgrid .opt { min-height: 140px; font-size: 18px; font-weight: 500; padding: 20px; }
+.pairgrid .opt small { font-size: 12px; color: var(--text-muted); font-weight: 400; }
+@media (max-width: 700px) { .pairgrid { grid-template-columns: 1fr; } .pairgrid .opt { min-height: 96px; flex-direction: column; justify-content: center; text-align: center; } .pairgrid .or { justify-self: center; } }
+.nav { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 24px; }
+.btn { border-radius: 10px; padding: 10px 18px; cursor: pointer; border: 1px solid var(--border); background: transparent; font-size: 15px; }
+.btn.primary { background: var(--text-primary); color: var(--surface-1); border-color: transparent; }
+.btn:disabled { opacity: .35; cursor: default; }
+.linkbtn { background: none; border: 0; color: var(--text-muted); cursor: pointer; font-size: 13px; padding: 4px 0; text-decoration: underline; text-underline-offset: 3px; }
+.hint { font-size: 12px; color: var(--text-muted); }
+.quote { border-left: 2px solid var(--axis); padding: 2px 0 2px 16px; margin: 4px 0 20px; color: var(--text-secondary); font-size: 17px; }
+
+/* sliders & grids */
+input[type=range] { width: 100%; accent-color: var(--series-1); height: 28px; }
+.bip { margin: 8px 0 22px; }
+.bip .ends { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-secondary); gap: 16px; }
+.bip .ends span:last-child { text-align: right; }
+.gridrow { display: grid; grid-template-columns: 140px 1fr 40px; gap: 14px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--grid); }
+.gridrow:last-child { border-bottom: 0; }
+.gridrow .nm { font-size: 14px; font-weight: 600; }
+.gridrow .nm small { display: block; font-weight: 400; color: var(--text-muted); font-size: 12px; }
+.gridrow output { text-align: right; font-variant-numeric: tabular-nums; color: var(--text-secondary); font-size: 14px; }
+.gridrow input[type=number] { width: 96px; font: inherit; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--page); color: var(--text-primary); }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.seg button { border: 0; background: transparent; padding: 7px 12px; font-size: 13px; cursor: pointer; border-right: 1px solid var(--border); }
+.seg button:last-child { border-right: 0; }
+.seg button.sel { background: var(--wash-strong); font-weight: 600; }
+.wishrow { display: grid; grid-template-columns: 140px 1fr; gap: 14px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--grid); }
+@media (max-width: 600px) { .gridrow, .wishrow { grid-template-columns: 1fr; gap: 4px; } .gridrow output { text-align: left; } }
+textarea { width: 100%; min-height: 120px; font: inherit; font-size: 17px; padding: 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--page); color: var(--text-primary); resize: vertical; }
+input[type=text] { font: inherit; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--page); color: var(--text-primary); width: 260px; max-width: 100%; }
+
+/* reveal */
+.reveal .big { font-size: 56px; font-weight: 650; line-height: 1; letter-spacing: -0.02em; margin: 8px 0 6px; }
+.reveal .unlock { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; color: var(--good); border: 1px solid currentColor; border-radius: 999px; padding: 2px 10px; margin-bottom: 14px; }
+.vs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+.vs div { background: var(--surface-2); border-radius: 12px; padding: 14px; }
+.vs .k { font-size: 12px; color: var(--text-muted); }
+.vs .v { font-size: 26px; font-weight: 600; }
+
+/* panel */
+aside.panel { position: sticky; top: 24px; align-self: start; max-height: calc(100vh - 48px); overflow: auto; }
+@media (max-width: 1000px) {
+  aside.panel.open { position: fixed; inset: auto 0 0 0; max-height: 78vh; z-index: 20; background: var(--page); border-top: 1px solid var(--border); padding: 20px 16px 32px; border-radius: 16px 16px 0 0; box-shadow: 0 -8px 32px rgba(0,0,0,.18); }
 }
-input[type=text] {
-  font: inherit; font-size: 14px; padding: 6px 12px; border-radius: 999px;
-  border: 1px solid var(--border); background: var(--page); color: var(--text-primary); width: 200px;
-}
-.nav { display: flex; justify-content: space-between; gap: 12px; margin-top: 20px; }
-button.btn {
-  font: inherit; font-size: 15px; border-radius: 8px; padding: 10px 18px; cursor: pointer;
-  border: 1px solid var(--border); background: transparent; color: var(--text-primary);
-}
-button.btn.primary { background: var(--text-primary); color: var(--surface-1); border-color: transparent; }
-button.btn:disabled { opacity: 0.4; cursor: default; }
-.sum { font-size: 13px; color: var(--text-muted); margin-top: 8px; }
-.sum.warn { color: var(--push); }
+.pcard { background: var(--surface-1); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-bottom: 12px; }
+.peq { font-family: "Cambria Math", "STIX Two Math", Georgia, serif; font-size: 15px; line-height: 1.7; }
+.peq .t { white-space: nowrap; }
+.peq .t.new { animation: glow 1.2s ease; border-radius: 4px; }
+@keyframes glow { from { background: var(--wash-strong); } to { background: transparent; } }
+.vbar { display: grid; grid-template-columns: 92px 1fr 34px; gap: 8px; align-items: center; font-size: 12px; margin: 5px 0; }
+.vbar .tr { height: 8px; background: var(--surface-2); border-radius: 4px; overflow: hidden; }
+.vbar .tr i { display: block; height: 100%; background: var(--series-1); border-radius: 0 4px 4px 0; transition: width .4s ease, opacity .4s ease; }
+.vbar span:last-child { text-align: right; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+.meter { margin: 12px 0; font-size: 12px; }
+.meter .lbl { display: flex; justify-content: space-between; color: var(--text-secondary); margin-bottom: 4px; }
+.meter .track { position: relative; height: 6px; background: var(--surface-2); border-radius: 3px; }
+.meter .dot { position: absolute; top: 50%; width: 14px; height: 14px; border-radius: 50%; background: var(--series-1); border: 2px solid var(--surface-1); transform: translate(-50%, -50%); transition: left .4s ease; }
+.meter.locked { color: var(--text-muted); }
+.meter.locked .track { background: repeating-linear-gradient(45deg, var(--surface-2) 0 6px, transparent 6px 10px); }
+.chlist { list-style: none; padding: 0; margin: 0; font-size: 13px; }
+.chlist li { display: flex; gap: 8px; padding: 3px 0; color: var(--text-muted); }
+.chlist li.done { color: var(--text-secondary); }
+.chlist li.now { color: var(--text-primary); font-weight: 600; }
+.badges { display: flex; flex-wrap: wrap; gap: 6px; }
+.badge { font-size: 12px; border: 1px solid var(--border); border-radius: 999px; padding: 3px 10px; color: var(--text-muted); }
+.badge.on { color: var(--text-primary); border-color: var(--series-1); background: var(--wash); }
+.fab { display: none; position: fixed; bottom: 16px; right: 16px; z-index: 21; border-radius: 999px; padding: 12px 18px; background: var(--text-primary); color: var(--surface-1); border: 0; cursor: pointer; box-shadow: 0 6px 20px rgba(0,0,0,.2); font-size: 14px; }
+@media (max-width: 1000px) { .fab { display: block; } }
+
+/* toast */
+.toast { position: fixed; left: 50%; top: 18px; transform: translateX(-50%) translateY(-20px); opacity: 0; background: var(--text-primary); color: var(--surface-1); padding: 8px 16px; border-radius: 999px; font-size: 13px; transition: all .25s ease; z-index: 30; pointer-events: none; white-space: nowrap; }
+.toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
 
 /* results */
-.tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.results { grid-column: 1 / -1; max-width: 820px; margin: 0 auto; width: 100%; }
+.rcard { background: var(--surface-1); border: 1px solid var(--border); border-radius: 14px; padding: 24px; margin: 16px 0; }
+.tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+@media (max-width: 760px) { .tiles { grid-template-columns: 1fr 1fr; } }
 .tile { background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
 .tile .k { font-size: 12px; color: var(--text-muted); }
-.tile .v { font-size: 32px; font-weight: 600; line-height: 1.2; margin: 4px 0; }
+.tile .v { font-size: 30px; font-weight: 600; line-height: 1.2; margin: 4px 0; }
 .tile .d { font-size: 13px; color: var(--text-secondary); line-height: 1.4; }
-.eq {
-  font-family: "Cambria Math", "STIX Two Math", Georgia, serif; font-size: 20px; line-height: 1.8;
-  padding: 16px 0 4px;
-}
-.eq i { font-style: italic; }
+.eq { font-family: "Cambria Math", "STIX Two Math", Georgia, serif; font-size: 21px; line-height: 1.9; }
 .eq .t { white-space: nowrap; }
-.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--text-secondary); margin: 8px 0; }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--text-secondary); margin: 8px 0 4px; }
 .legend span { display: inline-flex; align-items: center; gap: 6px; }
 svg text { fill: var(--text-secondary); font: 12px system-ui, -apple-system, "Segoe UI", sans-serif; }
 svg .tick { fill: var(--text-muted); font-variant-numeric: tabular-nums; }
-.insights li { margin-bottom: 10px; }
-.tablewrap { overflow-x: auto; }
+svg .strong { fill: var(--text-primary); font-weight: 600; }
+.list li { margin-bottom: 10px; }
+.words blockquote { margin: 0 0 14px; padding: 0 0 0 14px; border-left: 2px solid var(--axis); }
+.words blockquote small { display: block; color: var(--text-muted); font-size: 12px; margin-bottom: 2px; }
 table { border-collapse: collapse; width: 100%; font-size: 14px; font-variant-numeric: tabular-nums; }
 th, td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--grid); }
 th:first-child, td:first-child { text-align: left; }
 th { color: var(--text-muted); font-weight: 500; font-size: 12px; }
-.linkbtn { background: none; border: 0; color: var(--text-secondary); text-decoration: underline; cursor: pointer; font: inherit; font-size: 13px; padding: 0; }
-#tip {
-  position: fixed; pointer-events: none; background: var(--surface-1); color: var(--text-primary);
-  border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 13px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.12); opacity: 0; transition: opacity .1s; max-width: 260px; z-index: 10;
-}
-.actions { display: flex; flex-wrap: wrap; gap: 8px; }
-.toast { font-size: 13px; color: var(--text-muted); margin-left: 8px; align-self: center; }
-@media (max-width: 600px) {
-  .row { grid-template-columns: 110px 1fr 36px; }
-  .row2 { grid-template-columns: 1fr 1fr; }
-  .row2 .name { grid-column: 1 / -1; }
-  .tiles { grid-template-columns: 1fr; }
-}
-@media print {
-  .nav, .actions, .progress { display: none; }
-  body { background: #fff; }
-}
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+.arch { font-size: 44px; font-weight: 650; letter-spacing: -0.02em; line-height: 1.05; margin: 4px 0 12px; }
+#tip { position: fixed; pointer-events: none; background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 13px; box-shadow: 0 4px 16px rgba(0,0,0,.12); opacity: 0; transition: opacity .1s; max-width: 260px; z-index: 40; }
+.sources { font-size: 13px; color: var(--text-secondary); }
+.sources li { margin-bottom: 4px; }
+@media print { .actions, .topbar, .fab, aside { display: none !important; } body { background: #fff; } .rcard { break-inside: avoid; } }
 </style>
 </head>
 <body>
-<main>
-  <div class="step-label" id="stepLabel"></div>
-  <div class="progress" id="progress"></div>
-  <div id="view"></div>
-</main>
+<div class="app" id="app">
+  <main id="main"></main>
+  <aside class="panel" id="panel"></aside>
+</div>
+<button class="fab" id="fab" onclick="togglePanel()">your function ↑</button>
+<div class="toast" id="toast"></div>
 <div id="tip" role="tooltip"></div>
 
 <script>
-/* ---------- model ---------- */
-const CATALOG = [
-  { key: "achievement",   sym: "A",  label: "achievement",   hint: "building, solving, making progress" },
-  { key: "relationships", sym: "R",  label: "relationships", hint: "partner, family, friends" },
-  { key: "meaning",       sym: "Me", label: "meaning",       hint: "work and time that matter to you" },
-  { key: "freedom",       sym: "F",  label: "freedom",       hint: "control over your time and choices" },
-  { key: "security",      sym: "S",  label: "security",      hint: "money in the bank, a safe future" },
-  { key: "leisure",       sym: "L",  label: "leisure",       hint: "rest, play, doing nothing" },
-  { key: "health",        sym: "He", label: "health",        hint: "sleep, sport, your body" },
-  { key: "recognition",   sym: "Rc", label: "recognition",   hint: "being seen, status, approval" },
-  { key: "money",         sym: "M",  label: "money",         hint: "income and what it buys" },
-  { key: "growth",        sym: "G",  label: "growth",        hint: "learning, becoming better" },
+/* =========================================================================
+   content
+   ========================================================================= */
+const VALUES = [
+  { k: "achievement",   sym: "A",  label: "achievement",   pair: "a big professional win",          pairsub: "the kind you'd call your parents about" },
+  { k: "relationships", sym: "R",  label: "relationships", pair: "deep time with people you love",  pairsub: "unhurried, phone away" },
+  { k: "meaning",       sym: "Me", label: "meaning",       pair: "work that clearly matters",       pairsub: "you can see who it helps" },
+  { k: "freedom",       sym: "F",  label: "freedom",       pair: "full control over your calendar", pairsub: "nobody else decides your day" },
+  { k: "security",      sym: "S",  label: "security",      pair: "a year of savings in the bank",   pairsub: "nothing can knock you over" },
+  { k: "pleasure",      sym: "L",  label: "leisure & fun", pair: "more time to rest and enjoy",     pairsub: "without feeling guilty" },
+  { k: "recognition",   sym: "Rc", label: "recognition",   pair: "more respect and visibility",     pairsub: "people know what you've done" },
+  { k: "growth",        sym: "G",  label: "growth",        pair: "learning a big new skill",        pairsub: "becoming noticeably better" },
 ];
-const DEFAULT_KEYS = ["achievement", "relationships", "meaning", "freedom", "security", "leisure"];
+const V = Object.fromEntries(VALUES.map(v => [v.k, v]));
 
-const STEPS = ["intro", "variables", "stated", "pullpush", "levels", "revealed", "wished", "result"];
-const STEP_NAMES = {
-  intro: "start", variables: "1 · variables", stated: "2 · what you say matters",
-  pullpush: "3 · hanni or nanni", levels: "4 · the price of one more",
-  revealed: "5 · what your week says", wished: "6 · what you wish you wanted", result: "your utility function",
+const SCALES = {
+  agree5: ["strongly disagree", "disagree", "neutral", "agree", "strongly agree"],
+  like6: ["not like me at all", "not like me", "a little like me", "somewhat like me", "like me", "very much like me"],
 };
 
-let state = loadState() || freshState();
-function freshState() {
-  return { step: 0, name: "", vars: DEFAULT_KEYS.map(k => ({ ...CATALOG.find(c => c.key === k), custom: false })), d: {} };
-}
-function d(key) {
-  if (!state.d[key]) state.d[key] = { stated: 5, pull: 5, push: 5, level: 5, hours: 5, wished: 5 };
-  return state.d[key];
-}
-function saveState() {
-  try { localStorage.setItem("ufn-state", JSON.stringify(state)); } catch (e) {}
-}
-function loadState() {
+/* item bank. items are original, written for this tool, inspired by the constructs cited in the method notes. */
+const ITEMS = {
+  // values (portrait format, Schwartz PVQ-inspired)
+  v_a1: { scale: "like6", value: "achievement",   text: "being successful matters a lot to them. they like to show what they can do." },
+  v_r1: { scale: "like6", value: "relationships", text: "they make time for the people close to them, even when it's inconvenient." },
+  v_m1: { scale: "like6", value: "meaning",       text: "they need their work to matter beyond the paycheck." },
+  v_f1: { scale: "like6", value: "freedom",       text: "they want to decide for themselves what to do and when." },
+  v_s1: { scale: "like6", value: "security",      text: "they want a solid financial cushion before they take risks." },
+  v_l1: { scale: "like6", value: "pleasure",      text: "they take every chance to enjoy life and have fun." },
+  v_c1: { scale: "like6", value: "recognition",   text: "it matters to them that people respect what they've achieved." },
+  v_g1: { scale: "like6", value: "growth",        text: "they look for new challenges and want to keep learning." },
+  v_a2: { scale: "like6", value: "achievement",   text: "they set ambitious goals and feel restless when they aren't making progress." },
+  v_r2: { scale: "like6", value: "relationships", text: "for them, a good week is one spent with people they love." },
+  v_m2: { scale: "like6", value: "meaning",       text: "they care about leaving things better than they found them." },
+  v_f2: { scale: "like6", value: "freedom",       text: "they would take a lower salary for more control over their time." },
+  v_s2: { scale: "like6", value: "security",      text: "a stable, predictable life is important to them." },
+  v_l2: { scale: "like6", value: "pleasure",      text: "doing nothing, without guilt, is something they value." },
+  v_c2: { scale: "like6", value: "recognition",   text: "they like being seen as someone important." },
+  v_g2: { scale: "like6", value: "growth",        text: "they get bored when things stay the same for too long." },
+
+  // why you work (self-determination theory, WEIMS-inspired)
+  w_i1: { scale: "agree5", prompt: "i work as hard as i do because…", text: "i enjoy the work itself." },
+  w_e1: { scale: "agree5", prompt: "i work as hard as i do because…", text: "people around me expect it." },
+  w_d1: { scale: "agree5", prompt: "i work as hard as i do because…", text: "it moves me toward things i find important." },
+  w_j1: { scale: "agree5", prompt: "i work as hard as i do because…", text: "i would feel guilty if i did less." },
+  w_i2: { scale: "agree5", prompt: "i work as hard as i do because…", text: "solving hard problems is fun for me." },
+  w_e2: { scale: "agree5", prompt: "i work as hard as i do because…", text: "the money and status depend on it." },
+  w_j2: { scale: "agree5", prompt: "i work as hard as i do because…", text: "i need to prove to myself that i'm good enough." },
+  w_d2: { scale: "agree5", prompt: "i work as hard as i do because…", text: "i chose this path and i stand behind it." },
+
+  // passion (dualistic model of passion, Vallerand-inspired)
+  p_h1: { scale: "agree5", prompt: "think of the thing you put the most energy into.", text: "it fits well with the other parts of my life." },
+  p_o1: { scale: "agree5", prompt: "think of the thing you put the most energy into.", text: "i find it hard to switch off from it." },
+  p_h2: { scale: "agree5", prompt: "think of the thing you put the most energy into.", text: "i can step away from it for a while without trouble." },
+  p_o2: { scale: "agree5", prompt: "think of the thing you put the most energy into.", text: "my mood depends on how it's going." },
+  p_h3: { scale: "agree5", prompt: "think of the thing you put the most energy into.", text: "it brings out the best in me." },
+  p_o3: { scale: "agree5", prompt: "think of the thing you put the most energy into.", text: "if i couldn't do it, i wouldn't know who i am." },
+
+  // regulatory focus (Higgins-inspired)
+  f_p1: { scale: "like6", text: "they think a lot about what they could achieve." },
+  f_v1: { scale: "like6", text: "they think a lot about mistakes they want to avoid." },
+  f_p2: { scale: "like6", text: "the chance to win is what gets them out of bed." },
+  f_v2: { scale: "like6", text: "the fear of failing is what keeps them going." },
+
+  // maximizing & adaptation
+  x_m1: { scale: "agree5", text: "i never settle for second best." },
+  x_m2: { scale: "agree5", text: "i often wonder if there's something better out there." },
+  x_m3: { scale: "agree5", text: "good enough is usually good enough for me.", reverse: true },
+  x_m4: { scale: "agree5", text: "i spend a lot of time comparing my options, even after i've decided." },
+  x_a1: { scale: "agree5", text: "my last big achievement stopped feeling special within a few weeks." },
+  x_a2: { scale: "agree5", text: "each win feels a little smaller than the one before." },
+
+  // time (consideration of future consequences-inspired)
+  t_c1: { scale: "agree5", text: "i often give up happiness today for a better future." },
+  t_c2: { scale: "agree5", text: "i mostly do what feels right now and let the future take care of itself.", reverse: true },
+  t_c3: { scale: "agree5", text: "i regularly think about how i'll feel about my choices in ten years." },
+  t_fl: { scale: "agree5", text: "once i reach my next milestone, i'll finally relax." },
+
+  // sunk cost, identity, environment
+  s_i1: { scale: "agree5", text: "leaving my current path would feel like wasting everything i've put in." },
+  s_i2: { scale: "agree5", text: "if i stopped being \"the ambitious one\", i'm not sure who i'd be." },
+  e_n1: { scale: "agree5", text: "my goals look a lot like the goals of the people around me." },
+  e_n2: { scale: "agree5", text: "some of my ambitions came from my environment, and i'm not sure they're mine." },
+
+  // second-order desires
+  o_d1: { scale: "agree5", text: "i wish i depended less on other people's approval." },
+  o_d2: { scale: "agree5", text: "i wish i could enjoy success without needing the next one." },
+};
+
+const CHOICES = {
+  c_raise: { text: "you get a 20% raise. how long does the good feeling last?", options: [["days", "a few days"], ["weeks", "a few weeks"], ["months", "a few months"], ["longer", "longer than that"]] },
+  c_role: { text: "you're offered a senior role: +30% pay, +10 hours a week. what do you do?", options: [["take", "take it, right away"], ["negotiate", "take it, after negotiating"], ["hours", "ask for the role without the extra hours"], ["decline", "decline"]] },
+  c_from: { text: "honestly: where would those 10 extra hours come from?", options: [["sleep", "sleep"], ["people", "friends, family, partner"], ["body", "sport and health"], ["rest", "rest and fun"], ["somewhere", "i'd find them somewhere"]] },
+  c_sat: { text: "a free saturday appears. no plans. what actually happens?", options: [["work", "i catch up on work", "achievement"], ["people", "i see people", "relationships"], ["rest", "i do nothing, happily", "pleasure"], ["new", "i learn or try something new", "growth"], ["guilt", "i rest, but feel guilty", null]] },
+  c_forecast: { text: "think of a big goal you reached. compared with what you expected, it felt…", options: [["muchless", "much less good"], ["less", "a bit less good"], ["same", "as good as expected"], ["more", "better than expected"]] },
+  c_concert: { text: "you paid €100 for a concert. on the night, you're exhausted, it's pouring, and you'd rather stay home. you…", options: [["go", "go anyway. i paid for it."], ["stay", "stay home. the money's gone either way."]] },
+  c_project: { text: "you've spent two years on a project. new information shows a different approach would work better from here. you…", options: [["keep", "keep going. too much is invested."], ["switch", "switch. the past two years don't change what's best now."], ["unsure", "i'd struggle with this for a long time."]] },
+  c_change: { text: "compared with five years ago, what matters to you has…", options: [["barely", "barely changed"], ["bit", "changed a bit"], ["lot", "changed a lot"]] },
+  c_routine: { text: "and your week, how you actually spend time, has changed…", options: [["less", "less than my priorities"], ["same", "about as much"], ["more", "more than my priorities"]] },
+};
+
+const TITR_X = [1010, 1050, 1100, 1200, 1350, 1600, 2000];
+
+const CHAPTERS = [
+  { n: 1, title: "what you want", unlock: "your value weights", quote: "what are the variables in your personal utility function? how much do they matter?",
+    intro: "we start with the variables. each card describes a person. tell me how much they sound like you." },
+  { n: 2, title: "hanni or nanni", unlock: "your chase vs escape ratio", quote: "are you pursuing success because success makes you happy, or because not being successful would make you unhappy?",
+    intro: "same behavior, different engine. this chapter looks at why you do what you do." },
+  { n: 3, title: "the price of one more", unlock: "where your next hour pays most", quote: "the first slice when you're starving is wonderful. by the sixth, you're probably starting to question your decisions.",
+    intro: "diminishing marginal utility. how much do you already have, and how fast does more stop feeling like more?" },
+  { n: 4, title: "everything has a price", unlock: "say vs do", quote: "if someone observed your life for a month, what utility function would they conclude you're maximizing?",
+    intro: "opportunity cost and revealed preference. not what you say. what your week says." },
+  { n: 5, title: "your future self", unlock: "your discount factor δ", quote: "how much of your present life are you willing to sacrifice for a future version of yourself whose preferences you cannot reliably predict?",
+    intro: "a few money choices, then a few honest questions. no right answers." },
+  { n: 6, title: "sunk costs", unlock: "how much your past decides", quote: "something can have been the right decision in the past and no longer be the right decision today.",
+    intro: "two small dilemmas and a look at how your environment shapes what you want." },
+  { n: 7, title: "choosing what to want", unlock: "your utility function", quote: "if you're maximizing a utility function that you wish were different, are you really optimizing for the life you want?",
+    intro: "second-order desires: desires about your desires. the last step." },
+];
+
+/* the flow. adaptive content (pairs, titration, top values) is resolved when a step is first shown, then stored. */
+const L = id => ({ type: "likert", id });
+const C = id => ({ type: "choice", id });
+const FLOW = [
+  { type: "welcome" },
+  { type: "chapter", ch: 1 },
+  ...["v_a1", "v_r1", "v_m1", "v_f1", "v_s1", "v_l1", "v_c1", "v_g1"].map(L),
+  { type: "pair", id: "p0" }, { type: "pair", id: "p1" }, { type: "pair", id: "p2" },
+  ...["v_a2", "v_r2", "v_m2", "v_f2", "v_s2", "v_l2", "v_c2", "v_g2"].map(L),
+  { type: "pair", id: "p3" }, { type: "pair", id: "p4" }, { type: "pair", id: "p5" }, { type: "pair", id: "p6" }, { type: "pair", id: "p7" },
+  { type: "predict", id: "g_top", kind: "pick", ch: 1, text: "before i show you: which variable do you think came out on top?" },
+  { type: "reveal", ch: 1 },
+  { type: "reflect", id: "r1", ch: 1, text: "does that ranking feel true? what surprised you?" },
+
+  { type: "chapter", ch: 2 },
+  { type: "predict", id: "g_hanni", kind: "slider", ch: 2, text: "first, a guess. where do you think you sit?", left: "nanni · escaping", right: "hanni · chasing" },
+  ...["w_i1", "w_e1", "w_d1", "w_j1", "w_i2", "w_e2", "w_j2", "w_d2"].map(L),
+  ...["p_h1", "p_o1", "p_h2", "p_o2", "p_h3", "p_o3"].map(L),
+  ...["f_p1", "f_v1", "f_p2", "f_v2"].map(L),
+  { type: "bipolar", id: "b0" }, { type: "bipolar", id: "b1" }, { type: "bipolar", id: "b2" }, { type: "bipolar", id: "b3" },
+  { type: "reveal", ch: 2 },
+  { type: "reflect", id: "r2", ch: 2, text: "think of your last big win. what did you feel first: joy, or relief?" },
+
+  { type: "chapter", ch: 3 },
+  { type: "levels" },
+  ...["x_m1", "x_m2", "x_m3", "x_m4", "x_a1", "x_a2"].map(L),
+  C("c_raise"),
+  { type: "reveal", ch: 3 },
+  { type: "reflect", id: "r3", ch: 3, text: "what do you already have enough of, but still chase?" },
+
+  { type: "chapter", ch: 4 },
+  { type: "hours" },
+  C("c_role"), C("c_from"), C("c_sat"),
+  { type: "predict", id: "g_saydo", kind: "slider", ch: 4, text: "guess: how well does your week match what you say matters?", left: "not at all", right: "perfectly", pctLabel: true },
+  { type: "reveal", ch: 4 },
+  { type: "reflect", id: "r4", ch: 4, text: "if someone watched your last month, what would they say you value?" },
+
+  { type: "chapter", ch: 5 },
+  { type: "titr", id: "t0" }, { type: "titr", id: "t1" }, { type: "titr", id: "t2" },
+  ...["t_c1", "t_c2", "t_c3", "t_fl"].map(L),
+  C("c_forecast"),
+  { type: "reveal", ch: 5 },
+  { type: "reflect", id: "r5", ch: 5, text: "what are you postponing until \"later\"?" },
+
+  { type: "chapter", ch: 6 },
+  C("c_concert"), C("c_project"),
+  ...["s_i1", "s_i2", "e_n1", "e_n2"].map(L),
+  C("c_change"), C("c_routine"),
+  { type: "reveal", ch: 6 },
+  { type: "reflect", id: "r6", ch: 6, text: "what would you do differently if past effort didn't count?" },
+
+  { type: "chapter", ch: 7 },
+  { type: "wish" },
+  ...["o_d1", "o_d2"].map(L),
+  { type: "reflect", id: "r7", ch: 7, text: "finish the sentence: i want to want…" },
+  { type: "reveal", ch: 7 },
+  { type: "results" },
+];
+FLOW.forEach((s, i) => { s.i = i; });
+// chapter of each step
+let curCh = 0; FLOW.forEach(s => { if (s.type === "chapter") curCh = s.ch; s.chap = curCh; });
+const CH_STEPS = CHAPTERS.map(c => FLOW.filter(s => s.chap === c.n));
+
+/* =========================================================================
+   state
+   ========================================================================= */
+const KEY = "ufn2";
+let S = load() || fresh();
+function fresh() { return { i: 0, a: {}, pairs: {}, top4: null, name: "", seenReveal: {}, started: Date.now() }; }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+function load() {
   try {
-    if (location.hash.length > 1) {
-      const s = JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(1)))));
-      if (s && s.vars) return s;
-    }
-    const raw = localStorage.getItem("ufn-state");
-    return raw ? JSON.parse(raw) : null;
+    if (location.hash.length > 1) { const s = JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(1))))); if (s && s.a) return s; }
+    const raw = localStorage.getItem(KEY); return raw ? JSON.parse(raw) : null;
   } catch (e) { return null; }
 }
 
-const LN11 = Math.log(11);
-function normalize(arr) {
-  const s = arr.reduce((a, b) => a + b, 0);
-  return s > 0 ? arr.map(x => x / s) : arr.map(() => 1 / arr.length);
-}
-/* share of a variable's utility that comes from approach (hanni) vs avoidance (nanni) */
-function pullShare(v) { const t = v.pull + v.push; return t === 0 ? 0.5 : v.pull / t; }
-/* u(x) on [0,1]: approach term ln(1+x)/ln11, avoidance term (1 - 1/(1+x)) * 11/10 */
-function u(p, x) { return p * Math.log(1 + x) / LN11 + (1 - p) * (1 - 1 / (1 + x)) * 1.1; }
-function mu(p, x) { return p / ((1 + x) * LN11) + (1 - p) * 1.1 / ((1 + x) * (1 + x)); }
+/* =========================================================================
+   scoring
+   ========================================================================= */
+const mean = xs => { const v = xs.filter(x => x != null && !isNaN(x)); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const normalize = xs => { const s = xs.reduce((a, b) => a + b, 0); return s > 0 ? xs.map(x => x / s) : xs.map(() => 1 / xs.length); };
+function item(id) { const v = S.a[id]; if (v == null) return null; const it = ITEMS[id]; const max = it.scale === "like6" ? 6 : 5; return it.reverse ? max + 1 - v : v; }
+const items = ids => mean(ids.map(item));
+const pref = p => Object.keys(ITEMS).filter(k => k.startsWith(p));
 
-function compute() {
-  const vs = state.vars.map(v => ({ ...v, ...d(v.key) }));
-  const s = normalize(vs.map(v => v.stated));
-  const r = normalize(vs.map(v => +v.hours || 0));
-  const w = normalize(vs.map(v => v.wished));
-  const rows = vs.map((v, i) => {
-    const p = pullShare(v);
-    return { ...v, s: s[i], r: r[i], w: w[i], p, u: u(p, v.level), mu: s[i] * mu(p, v.level) };
+function valueScores() {
+  // ipsatized portrait ratings + pairwise wins
+  const raw = VALUES.map(v => mean(Object.keys(ITEMS).filter(k => ITEMS[k].value === v.k).map(item)));
+  const known = raw.filter(x => x != null);
+  const m = known.length ? mean(known) : 3.5;
+  const bt = Object.fromEntries(VALUES.map(v => [v.k, { w: 0, n: 0 }]));
+  Object.entries(S.pairs).forEach(([id, pr]) => {
+    const pick = S.a[id]; if (!pick) return;
+    pr.forEach(k => { bt[k].n++; if (k === pick) bt[k].w++; });
   });
-  const muN = normalize(rows.map(x => x.mu));
-  rows.forEach((x, i) => (x.muShare = muN[i]));
-  const alignment = 1 - 0.5 * rows.reduce((a, x) => a + Math.abs(x.s - x.r), 0);
-  const drift = 0.5 * rows.reduce((a, x) => a + Math.abs(x.s - x.w), 0);
-  const hanni = rows.reduce((a, x) => a + x.s * x.p, 0);
-  const U = rows.reduce((a, x) => a + x.s * x.u, 0);
-  const totalHours = vs.reduce((a, v) => a + (+v.hours || 0), 0);
-  return { rows, alignment, drift, hanni, U, totalHours };
+  return VALUES.map((v, i) => {
+    const c = raw[i] == null ? 0 : raw[i] - m;
+    const b = bt[v.k].n ? (2 * bt[v.k].w - bt[v.k].n) / bt[v.k].n : 0;
+    const nItems = Object.keys(ITEMS).filter(k => ITEMS[k].value === v.k && S.a[k] != null).length;
+    return { k: v.k, score: c + 0.8 * b, clarity: clamp((nItems + bt[v.k].n * 0.7) / 3.4, 0, 1), raw: raw[i] };
+  });
+}
+function statedWeights() {
+  const vs = valueScores();
+  const ex = vs.map(x => Math.exp(0.85 * x.score));
+  const w = normalize(ex);
+  return vs.map((x, i) => ({ ...x, w: w[i] }));
+}
+function motivation() {
+  const I = items(["w_i1", "w_i2"]), D = items(["w_d1", "w_d2"]), J = items(["w_j1", "w_j2"]), E = items(["w_e1", "w_e2"]);
+  const HP = items(["p_h1", "p_h2", "p_h3"]), OP = items(["p_o1", "p_o2", "p_o3"]);
+  const PRO = items(["f_p1", "f_p2"]), PRE = items(["f_v1", "f_v2"]);
+  const parts = [];
+  if (I != null && D != null && J != null && E != null) parts.push([((I + D) / 2) / ((I + D) / 2 + (J + E) / 2), 0.35]);
+  if (HP != null && OP != null) parts.push([HP / (HP + OP), 0.25]);
+  if (PRO != null && PRE != null) parts.push([PRO / (PRO + PRE), 0.15]);
+  const bp = (S.top4 || []).map((k, i) => valuePull(i)).filter(x => x != null);
+  if (bp.length) parts.push([mean(bp), 0.25]);
+  const tw = parts.reduce((a, p) => a + p[1], 0);
+  const H = tw ? parts.reduce((a, p) => a + p[0] * p[1], 0) / tw : null;
+  // relative autonomy index, range -9..9 on 1-5 items
+  const RAI = (I != null && D != null && J != null && E != null) ? 2 * I + D - J - 2 * E : null;
+  return { I, D, J, E, HP, OP, PRO, PRE, H, RAI };
+}
+function valuePull(i) {
+  const a = S.a["b" + i]; if (!a) return null;
+  const p1 = 1 - a.feel / 100, p2 = 1 - a.lack / 100;
+  return 0.6 * p1 + 0.4 * p2;
+}
+function pullFor(k, H) {
+  const i = (S.top4 || []).indexOf(k);
+  const p = i >= 0 ? valuePull(i) : null;
+  return p != null ? p : (H != null ? H : 0.6);
+}
+function titration() {
+  let lo = 0, hi = 7; const rounds = [];
+  for (let r = 0; r < 3; r++) {
+    const mid = Math.floor((lo + hi) / 2);
+    rounds.push(TITR_X[mid]);
+    const ans = S.a["t" + r]; if (!ans) return { next: TITR_X[mid], round: r, done: false };
+    if (ans === "later") hi = mid; else lo = mid + 1;
+  }
+  const b = lo;
+  const xstar = b === 0 ? 1005 : b === 7 ? 2400 : (TITR_X[b - 1] + TITR_X[b]) / 2;
+  return { done: true, xstar, delta: 1000 / xstar, bin: b };
+}
+function profile() {
+  const sw = statedWeights();
+  const mot = motivation();
+  const H = mot.H;
+  const hours = VALUES.map(v => +((S.a.hours || {})[v.k] || 0));
+  const rw = normalize(hours);
+  const wishF = { less: 0.6, same: 1, more: 1.5, much: 2 };
+  const ww = normalize(sw.map(x => x.w * (wishF[(S.a.wish || {})[x.k]] || 1)));
+  const lv = S.a.levels || {};
+  const rows = VALUES.map((v, i) => {
+    const p = pullFor(v.k, H);
+    const x = lv[v.k] != null ? lv[v.k] : 5;
+    const mu = sw[i].w * (p / ((1 + x) * Math.log(11)) + (1 - p) * 1.1 / ((1 + x) * (1 + x)));
+    return { ...v, s: sw[i].w, clarity: sw[i].clarity, r: rw[i], w: ww[i], p, level: x, hours: hours[i], mu };
+  });
+  const muN = normalize(rows.map(r => r.mu)); rows.forEach((r, i) => (r.muShare = muN[i]));
+  const hasHours = hours.some(h => h > 0);
+  const align = hasHours ? 1 - 0.5 * rows.reduce((a, r) => a + Math.abs(r.s - r.r), 0) : null;
+  const wishAlign = hasHours ? 1 - 0.5 * rows.reduce((a, r) => a + Math.abs(r.w - r.r), 0) : null;
+  const drift = S.a.wish ? 0.5 * rows.reduce((a, r) => a + Math.abs(r.s - r.w), 0) : null;
+  const MAX = items(["x_m1", "x_m2", "x_m3", "x_m4"]);
+  const raiseMap = { days: 5, weeks: 4, months: 2.5, longer: 1.5 };
+  const ADAPT = mean([items(["x_a1", "x_a2"]), S.a.c_raise ? raiseMap[S.a.c_raise] : null]);
+  const T = titration();
+  const CFC = items(["t_c1", "t_c2", "t_c3"]);
+  const sunkParts = [S.a.c_concert ? (S.a.c_concert === "go" ? 1 : 0) : null,
+                     S.a.c_project ? ({ keep: 1, unsure: 0.6, switch: 0 })[S.a.c_project] : null,
+                     items(["s_i1", "s_i2"]) != null ? (items(["s_i1", "s_i2"]) - 1) / 4 : null];
+  const SUNK = mean(sunkParts);
+  const ENDO = items(["e_n1", "e_n2"]);
+  const outdated = S.a.c_change === "lot" && S.a.c_routine === "less" ? "high" : (S.a.c_change && S.a.c_change !== "barely" && S.a.c_routine === "less") ? "medium" : S.a.c_change ? "low" : null;
+  const top = [...rows].sort((a, b) => b.s - a.s);
+  const arch = (H != null && MAX != null) ? archetype(H, MAX) : null;
+  return { rows, top, mot, H, align, wishAlign, drift, MAX, ADAPT, T, CFC, SUNK, ENDO, outdated, arch, hasHours };
+}
+function archetype(H, MAX) {
+  const pull = H >= 0.5, maxi = MAX >= 3;
+  if (pull && maxi) return { key: "climber", name: "the climber", line: "you chase what you love, and you want the best version of it. hanni at full speed.", watch: "watch the curve flatten. the fourth promotion can make you less happy than the first." };
+  if (pull) return { key: "gardener", name: "the gardener", line: "you grow what you love, and you know when enough is enough.", watch: "watch for drift. a comfortable function can quietly go out of date." };
+  if (maxi) return { key: "runner", name: "the runner", line: "you run hard and well, partly away from something. more brings relief, not joy.", watch: "watch the finish line. it keeps moving, because the engine is the fear, not the goal." };
+  return { key: "guardian", name: "the guardian", line: "you protect what you have. avoiding loss weighs more than the next win.", watch: "watch for a life built around fears instead of wants." };
+}
+function consistency() {
+  const pairs = [];
+  const add = (a, b) => { if (a != null && b != null) pairs.push(1 - Math.abs(a - b) / 4); };
+  // never settle (x_m1) vs good enough is fine (x_m3 reversed already in item())
+  add(item("x_m1"), item("x_m3"));
+  // future focus vs present focus (t_c2 reversed)
+  add(item("t_c1"), item("t_c2"));
+  // can step away (p_h2) vs hard to switch off (p_o1, inverted)
+  if (item("p_h2") != null && item("p_o1") != null) add(item("p_h2"), 6 - item("p_o1"));
+  return pairs.length ? mean(pairs) : null;
+}
+function badges(P) {
+  const reflections = Object.keys(S.a).filter(k => /^r\d$/.test(k) && (S.a[k] || "").trim().length > 3).length;
+  const cons = consistency();
+  const topGuess = S.a.g_top && P.top[0] && S.a.g_top === P.top[0].k;
+  return [
+    { k: "oracle", name: "oracle", desc: "guessed your top variable", on: !!topGuess },
+    { k: "selfaware", name: "self-aware", desc: "hanni guess within 10 points", on: S.a.g_hanni != null && P.H != null && Math.abs(S.a.g_hanni / 100 - P.H) <= 0.1 },
+    { k: "mirror", name: "clear mirror", desc: "say-vs-do guess within 10 points", on: S.a.g_saydo != null && P.align != null && Math.abs(S.a.g_saydo / 100 - P.align) <= 0.1 },
+    { k: "consistent", name: "consistent", desc: "opposite questions, matching answers", on: cons != null && cons >= 0.75 },
+    { k: "reflective", name: "reflective", desc: "wrote 4+ reflections", on: reflections >= 4 },
+    { k: "unsunk", name: "unsunk", desc: "past costs didn't decide", on: P.SUNK != null && P.SUNK < 0.3 },
+  ];
 }
 
-/* ---------- rendering helpers ---------- */
+/* =========================================================================
+   helpers
+   ========================================================================= */
 const $ = s => document.querySelector(s);
-const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const pct = x => Math.round(x * 100) + "%";
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const pct = x => x == null ? "–" : Math.round(x * 100) + "%";
 const f2 = x => x.toFixed(2);
+let toastT;
+function toast(msg) { const t = $("#toast"); t.innerHTML = msg; t.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("on"), 1800); }
+function togglePanel() { $("#panel").classList.toggle("open"); }
 
-function go(delta) {
-  state.step = Math.max(0, Math.min(STEPS.length - 1, state.step + delta));
-  saveState(); render(); window.scrollTo({ top: 0, behavior: "smooth" });
+function equationHTML(rows, H, limit, prev) {
+  const rs = [...rows].sort((a, b) => b.s - a.s).slice(0, limit || rows.length);
+  return `<i>U</i> = ` + rs.map((r, i) => {
+    const hanni = r.p >= 0.5;
+    const sign = hanni ? (i ? " + " : "") : (i ? " − " : "−");
+    const term = hanni ? `${f2(r.s)}·ln(1+<i>${r.sym}</i>)` : `${f2(r.s)}/(1+<i>${r.sym}</i>)`;
+    const isNew = prev && prev[r.k] !== undefined && Math.abs(prev[r.k] - r.s) > 0.01;
+    return `<span class="t${isNew ? " new" : ""}">${sign}${term}</span>`;
+  }).join(" ") + (limit && rows.length > limit ? ` <span class="t">+ …</span>` : "");
 }
-function nav(nextLabel = "next", disabled = false) {
-  return `<div class="nav">
-    <button class="btn" onclick="go(-1)" ${state.step === 0 ? "disabled" : ""}>back</button>
-    <button class="btn primary" onclick="go(1)" ${disabled ? "disabled" : ""}>${nextLabel}</button>
-  </div>`;
-}
-function slider(key, field, min, max, step = 1) {
-  const val = d(key)[field];
-  return `<input type="range" min="${min}" max="${max}" step="${step}" value="${val}"
-    aria-label="${esc(key)} ${field}"
-    oninput="d('${key}').${field}=+this.value; this.closest('.row, .row2').querySelector('[data-o=${field}]') && (this.closest('.row, .row2').querySelector('[data-o=${field}]').textContent=this.value); saveState(); refreshSum && refreshSum()">`;
-}
-let refreshSum = null;
 
+/* =========================================================================
+   navigation
+   ========================================================================= */
+function step() { return FLOW[S.i]; }
+function go(d) {
+  S.i = clamp(S.i + d, 0, FLOW.length - 1);
+  save(); render();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+function answer(id, val, opts = {}) {
+  const before = statedWeights();
+  S.a[id] = val; save();
+  if (opts.toast !== false) feedback(before);
+  if (opts.advance !== false) { renderPanel(); setTimeout(() => go(1), 240); }
+  else renderPanel();
+}
+function feedback(before) {
+  const after = statedWeights();
+  let best = null;
+  after.forEach((x, i) => { const dlt = x.w - before[i].w; if (!best || Math.abs(dlt) > Math.abs(best.d)) best = { k: x.k, d: dlt }; });
+  if (best && Math.abs(best.d) >= 0.01) toast(`${V[best.k].label} ${best.d > 0 ? "↑" : "↓"} ${Math.abs(Math.round(best.d * 100))} pts in your function`);
+}
+
+/* =========================================================================
+   render: steps
+   ========================================================================= */
+let PREV_W = null;
 function render() {
-  refreshSum = null;
-  const step = STEPS[state.step];
-  $("#stepLabel").textContent = STEP_NAMES[step];
-  $("#progress").innerHTML = STEPS.map((_, i) => `<span class="${i <= state.step ? "on" : ""}"></span>`).join("");
-  $("#view").innerHTML = VIEWS[step]();
-  if (step === "result") drawResult();
+  const s = step();
+  $("#app").style.gridTemplateColumns = s.type === "results" ? "1fr" : "";
+  $("#panel").style.display = s.type === "results" || s.type === "welcome" ? "none" : "";
+  $("#fab").style.display = s.type === "results" || s.type === "welcome" ? "none" : "";
+  $("#main").className = s.type === "results" ? "results" : "";
+  $("#main").innerHTML = s.type === "results" ? RESULTS() : topbar(s) + `<div class="stage"><div class="card enter">${R[s.type](s)}</div></div>`;
+  if (s.type === "results") drawResults(); else bindStep(s);
+  renderPanel();
 }
+function topbar(s) {
+  if (s.type === "welcome") return "";
+  const bars = CHAPTERS.map((c, i) => {
+    const st = CH_STEPS[i]; const done = st.filter(x => x.i < S.i).length;
+    return `<span><i style="width:${(done / st.length) * 100}%"></i></span>`;
+  }).join("");
+  const ch = CHAPTERS[s.chap - 1];
+  const left = FLOW.length - 1 - S.i;
+  return `<div class="topbar"><div class="chapters" aria-hidden="true">${bars}</div>
+    <span class="toplabel">ch ${ch.n} · ${esc(ch.title)} · ${left} to go</span></div>`;
+}
+const backBtn = () => `<button class="btn" onclick="go(-1)" ${S.i <= 1 ? "disabled" : ""}>back</button>`;
+const kbdHint = n => `<span class="hint">keys 1–${n} work too</span>`;
 
-/* ---------- views ---------- */
-const VIEWS = {
-  intro: () => `
+const R = {
+  welcome: () => `
+    <div class="kicker">a self-discovery game · ~15 minutes</div>
     <h1>what's your utility function?</h1>
-    <p class="sub">hanni and nanni are both 32. same city, similar jobs, 65 hours a week. from the outside they look the same.</p>
+    <p class="sub" style="font-size:17px">hanni and nanni are both 32. same city, similar jobs, 65 hours a week. from the outside they look identical.</p>
     <div class="quote"><b>hanni works because working makes her happy.<br>nanni works because not working makes her unhappy.</b></div>
-    <p>economics models people as maximizing a utility function: a ranking of what they prefer, subject to constraints. this tool helps you sketch yours.</p>
-    <p>it takes about 10 minutes. six steps:</p>
-    <ol class="sub">
-      <li>pick the variables in your function</li>
-      <li>say how much each one matters</li>
-      <li>find out if you chase it (hanni) or run from its absence (nanni)</li>
-      <li>see where one more unit pays the most</li>
-      <li>compare with what your week actually shows</li>
-      <li>say what you wish you wanted</li>
-    </ol>
-    <p class="muted">everything stays in your browser. nothing is sent anywhere. the maths is illustrative, not a diagnosis.</p>
-    <div class="card" style="margin-top:20px">
-      <label class="muted" for="nm">your first name (optional, shows on the result)</label><br>
-      <input type="text" id="nm" value="${esc(state.name)}" oninput="state.name=this.value; saveState()">
-    </div>
-    ${nav("start")}`,
+    <p>this game asks you about 80 quick questions in 7 chapters. with every answer, your utility function takes shape on the side. at the end of each chapter you unlock a new piece of it. sometimes i ask you to guess first, so you can see how well you know yourself.</p>
+    <p class="muted">answers stay in your browser. progress saves automatically, so you can stop and come back. this is a reflection tool, not a clinical test.</p>
+    <div style="margin:18px 0 6px"><label class="muted" for="nm">your first name (optional)</label><br>
+      <input type="text" id="nm" value="${esc(S.name)}" maxlength="30" oninput="S.name=this.value;save()"></div>
+    <div class="spacer"></div>
+    <div class="nav">${S.i > 0 || Object.keys(S.a).length ? `<button class="linkbtn" onclick="if(confirm('clear all answers and start over?')){S=fresh();location.hash='';save();render()}">start over</button>` : "<span></span>"}
+      <button class="btn primary" onclick="go(1)">${Object.keys(S.a).length ? "continue" : "start"}</button></div>`,
 
-  variables: () => {
-    const sel = new Set(state.vars.map(v => v.key));
-    const all = [...CATALOG, ...state.vars.filter(v => v.custom)];
-    const n = state.vars.length;
-    return `
-      <h2>what goes into your function?</h2>
-      <p class="sub">pick 3 to 8 things your life seems to run on. U = f(these).</p>
-      <div class="chips">
-        ${all.map(c => `<button class="chip" aria-pressed="${sel.has(c.key)}" onclick="toggleVar('${esc(c.key)}')">${esc(c.label)} <small>${esc(c.sym)}</small></button>`).join("")}
-      </div>
-      <p class="muted">${all.map(c => sel.has(c.key) ? `<b>${esc(c.label)}</b>: ${esc(c.hint || "your own")}` : "").filter(Boolean).join(" · ")}</p>
-      <div style="display:flex;gap:8px;align-items:center;margin-top:16px">
-        <input type="text" id="custom" placeholder="add your own…" maxlength="24" onkeydown="if(event.key==='Enter')addCustom()">
-        <button class="btn" onclick="addCustom()">add</button>
-      </div>
-      <p class="sum ${n < 3 || n > 8 ? "warn" : ""}">${n} selected${n < 3 ? " · pick at least 3" : n > 8 ? " · 8 at most" : ""}</p>
-      ${nav("next", n < 3 || n > 8)}`;
+  chapter: s => {
+    const c = CHAPTERS[s.ch - 1];
+    return `<div class="kicker">chapter ${c.n} of 7</div>
+      <h1>${esc(c.title)}</h1>
+      <div class="quote">"${esc(c.quote)}"</div>
+      <p class="sub">${esc(c.intro)}</p>
+      <p class="muted">unlocks: <b>${esc(c.unlock)}</b> · ${CH_STEPS[c.n - 1].length - 1} cards</p>
+      <div class="spacer"></div>
+      <div class="nav">${backBtn()}<button class="btn primary" onclick="go(1)">begin</button></div>`;
   },
 
-  stated: () => `
-    <h2>what do you say matters?</h2>
-    <p class="sub">rate each one, 0 to 10. answer like you would in an interview. we normalize the weights so they add up to 100%.</p>
-    <div class="card">
-      ${state.vars.map(v => `
-        <div class="row">
-          <div class="name">${esc(v.label)}<small>${esc(v.hint || "")}</small></div>
-          ${slider(v.key, "stated", 0, 10)}
-          <output data-o="stated">${d(v.key).stated}</output>
-        </div>`).join("")}
-    </div>
-    ${nav()}`,
-
-  pullpush: () => `
-    <h2>hanni or nanni?</h2>
-    <p class="sub">for each variable, two separate questions. they are not opposites. you can score high on both.</p>
-    <div class="quote">
-      <b>pull</b>: how good does getting more of it feel? (hanni: α·ln(1+x))<br>
-      <b>push</b>: how bad does not having enough feel? guilt, anxiety, fear of falling behind. (nanni: −k / (1+x))
-    </div>
-    <div class="card">
-      ${state.vars.map(v => `
-        <div class="row2">
-          <div class="name"><b>${esc(v.label)}</b></div>
-          <div><label>pull: more feels good · <span data-o="pull">${d(v.key).pull}</span></label>${slider(v.key, "pull", 0, 10)}</div>
-          <div><label>push: lack feels bad · <span data-o="push">${d(v.key).push}</span></label>${slider(v.key, "push", 0, 10)}</div>
-        </div>`).join("")}
-    </div>
-    <p class="muted">tip: think of the last time you got more of it. was the feeling joy, or relief?</p>
-    ${nav()}`,
-
-  levels: () => `
-    <h2>how much do you have right now?</h2>
-    <p class="sub">0 = none at all, 10 = more than you could want. this sets where you sit on each curve. the first slice of pizza is worth more than the sixth.</p>
-    <div class="card">
-      ${state.vars.map(v => `
-        <div class="row">
-          <div class="name">${esc(v.label)}</div>
-          ${slider(v.key, "level", 0, 10)}
-          <output data-o="level">${d(v.key).level}</output>
-        </div>`).join("")}
-    </div>
-    ${nav()}`,
-
-  revealed: () => {
-    setTimeout(() => {
-      refreshSum = () => {
-        const t = state.vars.reduce((a, v) => a + (+d(v.key).hours || 0), 0);
-        const el = $("#hsum"); if (el) el.textContent = `${t} hours logged. overlap is fine: one dinner with friends can count for relationships and leisure.`;
-      };
-      refreshSum();
-    });
-    return `
-      <h2>what would an observer conclude?</h2>
-      <p class="sub">think of a typical week in the last month. not an ideal week. roughly how many hours went into each? this is revealed preference: what you choose, not what you say.</p>
-      <div class="card">
-        ${state.vars.map(v => `
-          <div class="row">
-            <div class="name">${esc(v.label)}<small>${esc(v.hint || "")}</small></div>
-            <input type="number" min="0" max="168" step="1" value="${d(v.key).hours}" aria-label="${esc(v.label)} hours per week"
-              oninput="d('${v.key}').hours=Math.max(0,Math.min(168,+this.value||0)); saveState(); refreshSum()">
-            <output>h</output>
-          </div>`).join("")}
-      </div>
-      <p class="sum" id="hsum"></p>
-      ${nav()}`;
+  likert: s => {
+    const it = ITEMS[s.id]; const labels = SCALES[it.scale]; const cur = S.a[s.id];
+    const head = it.scale === "like6" ? `<div class="prompt">how much is this person like you?</div>` : it.prompt ? `<div class="prompt">${esc(it.prompt)}</div>` : `<div class="prompt">how much do you agree?</div>`;
+    return `${head}<p class="q">${esc(it.text)}</p>
+      <div class="spacer"></div>
+      <div class="scale h${labels.length}">${labels.map((l, i) => `<button class="opt ${cur === i + 1 ? "sel" : ""}" data-v="${i + 1}"><span>${esc(l)}</span><kbd>${i + 1}</kbd></button>`).join("")}</div>
+      <div class="nav">${backBtn()}${kbdHint(labels.length)}<button class="linkbtn" onclick="go(1)">skip</button></div>`;
   },
 
-  wished: () => `
-    <h2>what do you wish you wanted?</h2>
-    <p class="sub">philosophers call these second-order desires: desires about your desires. if you could set your own weights, what would they be? not what you think you should say. what you would choose.</p>
-    <div class="card">
-      ${state.vars.map(v => `
-        <div class="row">
-          <div class="name">${esc(v.label)}</div>
-          ${slider(v.key, "wished", 0, 10)}
-          <output data-o="wished">${d(v.key).wished}</output>
-        </div>`).join("")}
-    </div>
-    <p class="muted">your stated answer was the start point. <button class="linkbtn" onclick="state.vars.forEach(v=>d(v.key).wished=d(v.key).stated);saveState();render()">reset to stated</button></p>
-    ${nav("show my function")}`,
+  choice: s => {
+    const c = CHOICES[s.id]; const cur = S.a[s.id];
+    return `<p class="q">${esc(c.text)}</p><div class="spacer"></div>
+      <div class="opts-col">${c.options.map((o, i) => `<button class="opt ${cur === o[0] ? "sel" : ""}" data-v="${o[0]}"><span>${esc(o[1])}</span><kbd>${i + 1}</kbd></button>`).join("")}</div>
+      <div class="nav">${backBtn()}${kbdHint(c.options.length)}<button class="linkbtn" onclick="go(1)">skip</button></div>`;
+  },
 
-  result: () => {
-    const c = compute();
-    const who = state.name ? esc(state.name) + "'s" : "your";
-    return `
-      <h1>${who} utility function</h1>
-      <p class="sub">one illustrative way to write down what you told me. read it as a mirror, not a measurement.</p>
+  pair: s => {
+    if (!S.pairs[s.id]) { S.pairs[s.id] = pickPair(); save(); }
+    const [a, b] = S.pairs[s.id]; const cur = S.a[s.id];
+    const card = (k, n) => `<button class="opt ${cur === k ? "sel" : ""}" data-v="${k}"><span>${esc(V[k].pair)}</span><small>${esc(V[k].pairsub)}</small><kbd>${n}</kbd></button>`;
+    return `<div class="prompt">this or that</div><p class="q">next year, you can only have more of one. which do you take?</p>
+      <div class="spacer"></div>
+      <div class="pairgrid">${card(a, 1)}<span class="or">or</span>${card(b, 2)}</div>
+      <div class="nav">${backBtn()}${kbdHint(2)}<button class="linkbtn" onclick="go(1)">skip</button></div>`;
+  },
 
-      <div class="card">
-        <div class="eq" id="eq"></div>
-        <p class="muted">each weight is your stated weight. ln(1+x) terms are things you chase (hanni). −w/(1+x) terms are things whose absence you avoid (nanni). the form follows whichever is stronger for that variable.</p>
+  bipolar: s => {
+    if (!S.top4) { S.top4 = statedWeights().sort((a, b) => b.w - a.w).slice(0, 4).map(x => x.k); save(); }
+    const i = +s.id.slice(1); const k = S.top4[i]; const v = V[k];
+    const cur = S.a[s.id] || { feel: 50, lack: 50 };
+    return `<div class="prompt">${i + 1} of 4 · one of your top variables</div>
+      <p class="q">${esc(v.label)}</p>
+      <div class="bip"><p class="sub" style="margin-bottom:6px">when you get more ${esc(v.label)}, what do you feel first?</p>
+        <input type="range" min="0" max="100" value="${cur.feel}" id="bf" aria-label="joy versus relief">
+        <div class="ends"><span>joy, energy, pleasure</span><span>relief, finally safe</span></div></div>
+      <div class="bip"><p class="sub" style="margin-bottom:6px">when you go without it for a while, it feels…</p>
+        <input type="range" min="0" max="100" value="${cur.lack}" id="bl" aria-label="fine versus anxious">
+        <div class="ends"><span>fine, i miss it a bit</span><span>anxious, guilty, behind</span></div></div>
+      <div class="spacer"></div>
+      <div class="nav">${backBtn()}<button class="btn primary" id="bnext">next</button></div>`;
+  },
+
+  levels: () => {
+    const lv = S.a.levels || {};
+    return `<div class="prompt">where you sit on each curve</div>
+      <p class="q" style="margin-bottom:12px">how much of each do you have right now?</p>
+      <p class="muted">0 = none at all · 10 = more than you could want</p>
+      ${VALUES.map(v => `<div class="gridrow"><div class="nm">${esc(v.label)}</div>
+        <input type="range" min="0" max="10" value="${lv[v.k] != null ? lv[v.k] : 5}" data-k="${v.k}" aria-label="${esc(v.label)} level"><output>${lv[v.k] != null ? lv[v.k] : 5}</output></div>`).join("")}
+      <div class="nav">${backBtn()}<button class="btn primary" id="gnext">next</button></div>`;
+  },
+
+  hours: () => {
+    const h = S.a.hours || {};
+    return `<div class="prompt">revealed preference</div>
+      <p class="q" style="margin-bottom:12px">in a typical week last month, roughly how many hours went into each?</p>
+      <p class="muted">not an ideal week. a real one. overlap is fine: dinner with friends can count for relationships and fun.</p>
+      ${VALUES.map(v => `<div class="gridrow"><div class="nm">${esc(v.label)}</div>
+        <input type="number" min="0" max="168" step="1" inputmode="numeric" value="${h[v.k] != null ? h[v.k] : ""}" placeholder="0" data-k="${v.k}" aria-label="${esc(v.label)} hours per week"><output>h/wk</output></div>`).join("")}
+      <p class="hint" id="hsum"></p>
+      <div class="nav">${backBtn()}<button class="btn primary" id="gnext">next</button></div>`;
+  },
+
+  wish: () => {
+    const w = S.a.wish || {};
+    const opts = [["less", "less"], ["same", "same"], ["more", "more"], ["much", "much more"]];
+    return `<div class="prompt">second-order desires</div>
+      <p class="q" style="margin-bottom:12px">if you could choose your own preferences, how much would you <i>want</i> to care about each?</p>
+      <p class="muted">not what you should say. what you would pick.</p>
+      ${VALUES.map(v => `<div class="wishrow"><div class="nm"><b style="font-size:14px">${esc(v.label)}</b></div>
+        <div class="seg" data-k="${v.k}">${opts.map(o => `<button class="${(w[v.k] || "same") === o[0] ? "sel" : ""}" data-v="${o[0]}">${o[1]}</button>`).join("")}</div></div>`).join("")}
+      <div class="nav">${backBtn()}<button class="btn primary" id="gnext">next</button></div>`;
+  },
+
+  titr: s => {
+    const T = titration();
+    const r = +s.id.slice(1);
+    if (T.done && S.a[s.id] == null) { go(1); return ""; }
+    // show the amount for this round given earlier answers
+    let lo = 0, hi = 7, x = null;
+    for (let k = 0; k <= r; k++) { const mid = Math.floor((lo + hi) / 2); x = TITR_X[mid]; if (k < r) { if (S.a["t" + k] === "later") hi = mid; else lo = mid + 1; } }
+    const cur = S.a[s.id];
+    return `<div class="prompt">round ${r + 1} of 3 · imagine this is real money</div>
+      <p class="q">which do you take?</p><div class="spacer"></div>
+      <div class="pairgrid">
+        <button class="opt ${cur === "now" ? "sel" : ""}" data-v="now"><span>€1,000</span><small>today</small><kbd>1</kbd></button>
+        <span class="or">or</span>
+        <button class="opt ${cur === "later" ? "sel" : ""}" data-v="later"><span>€${x.toLocaleString("en")}</span><small>in one year</small><kbd>2</kbd></button>
       </div>
+      <div class="nav">${backBtn()}${kbdHint(2)}<span></span></div>`;
+  },
 
-      <div class="tiles">
-        <div class="tile"><div class="k">say vs do</div><div class="v">${pct(c.alignment)}</div><div class="d">overlap between what you say matters and where your hours go</div></div>
-        <div class="tile"><div class="k">hanni share</div><div class="v">${pct(c.hanni)}</div><div class="d">of your weighted motivation is pull. the other ${pct(1 - c.hanni)} is push.</div></div>
-        <div class="tile"><div class="k">want to change</div><div class="v">${pct(c.drift)}</div><div class="d">of your weight you would move if you could choose your preferences</div></div>
-      </div>
+  predict: s => {
+    const cur = S.a[s.id];
+    if (s.kind === "pick") {
+      return `<div class="prompt">guess first</div><p class="q">${esc(s.text)}</p><div class="spacer"></div>
+        <div class="scale" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))">${VALUES.map(v => `<button class="opt ${cur === v.k ? "sel" : ""}" data-v="${v.k}">${esc(v.label)}</button>`).join("")}</div>
+        <div class="nav">${backBtn()}<span class="hint">guesses earn badges</span><span></span></div>`;
+    }
+    const val = cur != null ? cur : 50;
+    return `<div class="prompt">guess first</div><p class="q">${esc(s.text)}</p>
+      <div class="bip"><input type="range" min="0" max="100" value="${val}" id="pr" aria-label="your guess">
+      <div class="ends"><span>${esc(s.left)}</span><b id="prv">${s.pctLabel ? val + "%" : ""}</b><span>${esc(s.right)}</span></div></div>
+      <div class="spacer"></div>
+      <div class="nav">${backBtn()}<span class="hint">i'll show you how close you were</span><button class="btn primary" id="prnext">lock in my guess</button></div>`;
+  },
 
-      <div class="card">
-        <h2>stated, revealed, wished</h2>
-        <p class="sub">share of total weight per variable. wide gaps are where to look.</p>
-        <div class="legend" id="legend1"></div>
-        <div id="chart1"></div>
-        <button class="linkbtn" onclick="toggleTable('t1')">show as table</button>
-        <div class="tablewrap" id="t1" hidden></div>
-      </div>
+  reflect: s => `<div class="prompt">pause · one sentence is enough</div>
+    <p class="q">${esc(s.text)}</p>
+    <textarea id="rt" placeholder="type here… (optional)">${esc(S.a[s.id] || "")}</textarea>
+    <p class="hint" style="margin-top:8px">your words show up in your final profile. nobody else sees them.</p>
+    <div class="spacer"></div>
+    <div class="nav">${backBtn()}<button class="linkbtn" onclick="go(1)">skip</button><button class="btn primary" id="rnext">save & continue</button></div>`,
 
-      <div class="card">
-        <h2>where one more unit pays most</h2>
-        <p class="sub">marginal utility right now: stated weight × slope of the curve at your current level. where you have little, one more unit is worth a lot.</p>
-        <div id="chart2"></div>
-      </div>
-
-      <div class="card">
-        <h2>chase or escape</h2>
-        <p class="sub">pull (more feels good) to the right. push (lack feels bad) to the left.</p>
-        <div class="legend"><span><svg width="12" height="12"><rect width="12" height="12" rx="2" fill="var(--push)"/></svg>push · nanni</span><span><svg width="12" height="12"><rect width="12" height="12" rx="2" fill="var(--pull)"/></svg>pull · hanni</span></div>
-        <div id="chart3"></div>
-      </div>
-
-      <div class="card">
-        <h2>what this suggests</h2>
-        <ul class="insights" id="insights"></ul>
-      </div>
-
-      <div class="card">
-        <h2>questions to sit with</h2>
-        <ul class="insights">
-          <li>are you pursuing success because success makes you happy, or because not being successful would make you unhappy?</li>
-          <li>does the extra utility from working more exceed the utility of what you give up? ten hours a week is 2,600 hours over five years.</li>
-          <li>how much of your present are you willing to sacrifice for a future self whose preferences you cannot predict?</li>
-          <li>which past investments are you counting again when you decide about the future?</li>
-          <li>are you choosing your environment because it fits your preferences, or is it teaching you what to prefer?</li>
-          <li><b>is this the function you actually want to maximize?</b></li>
-        </ul>
-      </div>
-
-      <div class="actions">
-        <button class="btn primary" onclick="copySummary()">copy summary</button>
-        <button class="btn" onclick="shareLink()">copy share link</button>
-        <button class="btn" onclick="window.print()">print / pdf</button>
-        <button class="btn" onclick="state.step=1;saveState();render()">edit answers</button>
-        <button class="btn" onclick="if(confirm('clear all answers?')){state=freshState();location.hash='';saveState();render()}">start over</button>
-        <span class="toast" id="toast"></span>
-      </div>
-      <p class="muted" style="margin-top:24px">based on marius busen, "what's your utility function?"</p>`;
+  reveal: s => {
+    const P = profile(); const first = !S.seenReveal[s.ch]; S.seenReveal[s.ch] = true; save();
+    const c = CHAPTERS[s.ch - 1];
+    const unlock = `<span class="unlock">✓ unlocked: ${esc(c.unlock)}</span>`;
+    const body = REVEALS[s.ch](P);
+    const newBadges = first ? badges(P).filter(b => b.on && !(S.badgesShown || []).includes(b.k)) : [];
+    if (newBadges.length) { S.badgesShown = [...(S.badgesShown || []), ...newBadges.map(b => b.k)]; save(); setTimeout(() => toast(`badge unlocked: ${newBadges.map(b => b.name).join(", ")}`), 500); }
+    return `<div class="reveal">${unlock}${body}</div><div class="spacer"></div>
+      <div class="nav">${backBtn()}<button class="btn primary" onclick="go(1)">${s.ch === 7 ? "see my utility function" : "continue"}</button></div>`;
   },
 };
 
-function toggleVar(key) {
-  const i = state.vars.findIndex(v => v.key === key);
-  if (i >= 0) state.vars.splice(i, 1);
-  else if (state.vars.length < 8) {
-    const c = CATALOG.find(c => c.key === key) || state.customs?.[key];
-    if (c) state.vars.push({ ...c, custom: !CATALOG.find(x => x.key === key) });
+/* chapter reveals */
+const REVEALS = {
+  1: P => {
+    const t = P.top.slice(0, 3); const g = S.a.g_top;
+    const rank = g ? P.top.findIndex(r => r.k === g) + 1 : null;
+    const verdict = !g ? "" : rank === 1 ? `<p><b>you called it.</b> ${esc(V[g].label)} is your top variable.</p>` : `<p>you guessed <b>${esc(V[g].label)}</b>. your answers put it at <b>#${rank}</b> of 8. that gap is information too.</p>`;
+    return `<h2>your top three variables</h2>
+      ${t.map((r, i) => `<div class="vbar" style="grid-template-columns:120px 1fr 44px;font-size:15px;margin:10px 0"><span>${i + 1}. ${esc(r.label)}</span><span class="tr" style="height:12px"><i style="width:${(r.s / t[0].s) * 100}%"></i></span><span>${pct(r.s)}</span></div>`).join("")}
+      ${verdict}
+      <p class="sub">these weights come from two sources: how much the portraits sounded like you, and what you picked when forced to choose. forced choices count extra. it's easy to rate everything as important. it's harder to choose.</p>`;
+  },
+  2: P => {
+    const g = S.a.g_hanni; const H = P.H; const m = P.mot;
+    const diff = g != null && H != null ? Math.round(H * 100 - g) : null;
+    return `<h2>hanni share</h2>
+      <div class="vs"><div><div class="k">your guess</div><div class="v">${g != null ? g + "%" : "–"}</div></div><div><div class="k">your answers</div><div class="v">${pct(H)}</div></div></div>
+      <p>${H == null ? "" : H >= 0.6 ? "you mostly chase. more of what you value feels like reward, not relief." : H >= 0.45 ? "you're a mix. part of your engine is reward, part is escape. most people are here." : "a big part of your engine is escape: guilt, comparison, fear of falling behind. more brings relief, not joy."}
+      ${diff == null ? "" : Math.abs(diff) <= 10 ? " your guess was close. you know this part of yourself." : diff > 0 ? ` you're <b>${diff} points more hanni</b> than you thought.` : ` you're <b>${-diff} points more nanni</b> than you thought.`}</p>
+      ${m.I != null ? `<p class="sub">why you work, on a 1–5 scale: enjoyment ${m.I.toFixed(1)} · it matters to me ${m.D.toFixed(1)} · guilt and proving ${m.J.toFixed(1)} · expectations and pay ${m.E.toFixed(1)}. self-determination theory calls the first two <i>autonomous</i> and the last two <i>controlled</i> motivation.</p>` : ""}
+      ${m.HP != null ? `<p class="sub">passion: harmonious ${m.HP.toFixed(1)} vs obsessive ${m.OP.toFixed(1)}. ${m.OP > m.HP ? "your passion controls you a bit more than you control it." : "you seem to hold your passion, not the other way round."}</p>` : ""}`;
+  },
+  3: P => {
+    const mu = [...P.rows].sort((a, b) => b.muShare - a.muShare).slice(0, 3);
+    return `<h2>where one more unit pays most</h2>
+      ${mu.map((r, i) => `<div class="vbar" style="grid-template-columns:120px 1fr 44px;font-size:15px;margin:10px 0"><span>${esc(r.label)}</span><span class="tr" style="height:12px"><i style="width:${(r.muShare / mu[0].muShare) * 100}%;opacity:${i ? .55 : 1}"></i></span><span>${pct(r.muShare)}</span></div>`).join("")}
+      <p>your next hour is worth most in <b>${esc(mu[0].label)}</b>. you rated yourself ${mu[0].level}/10 there, and it carries ${pct(mu[0].s)} of your weight.</p>
+      ${P.MAX != null ? `<p class="sub">maximizer score ${P.MAX.toFixed(1)} of 5. ${P.MAX >= 3.5 ? "you want the best, not good enough. maximizers often decide better on paper and feel worse about it." : P.MAX >= 2.5 ? "you're in the middle: you want good, not always the best." : "you're a satisficer. good enough really is enough for you, which research links to higher satisfaction."}</p>` : ""}
+      ${P.ADAPT != null ? `<p class="sub">adaptation ${P.ADAPT.toFixed(1)} of 5. ${P.ADAPT >= 3.5 ? "wins fade fast for you. the treadmill is real." : "your wins stay with you for a while."}</p>` : ""}`;
+  },
+  4: P => {
+    const g = S.a.g_saydo;
+    const gaps = [...P.rows].sort((a, b) => (b.r - b.s) - (a.r - a.s));
+    const over = gaps[0], under = gaps[gaps.length - 1];
+    return `<h2>say vs do</h2>
+      <div class="vs"><div><div class="k">your guess</div><div class="v">${g != null ? g + "%" : "–"}</div></div><div><div class="k">your week</div><div class="v">${pct(P.align)}</div></div></div>
+      ${P.hasHours ? `<p><b>${esc(over.label)}</b> gets ${pct(over.r)} of your hours but ${pct(over.s)} of your stated weight. <b>${esc(under.label)}</b> is the opposite: ${pct(under.s)} of what you say, ${pct(under.r)} of your time.</p>
+      <p class="sub">an observer would conclude you value ${esc(over.label)} more than you claim. maybe that's a deliberate trade. maybe it's habit or fear deciding.</p>` : `<p class="sub">add your hours to see this.</p>`}
+      ${S.a.c_from ? `<p class="sub">and those 10 extra hours would come from <b>${esc(CHOICES.c_from.options.find(o => o[0] === S.a.c_from)[1])}</b>. ten hours a week is 2,600 hours over five years.</p>` : ""}`;
+  },
+  5: P => {
+    const T = P.T; if (!T.done) return `<h2>your future self</h2><p class="sub">finish the three money rounds to see this.</p>`;
+    const d = T.delta; const w10 = Math.pow(d, 10);
+    return `<h2>your discount factor</h2>
+      <div class="big">δ ≈ ${d.toFixed(2)}</div>
+      <p>you'd wait a year for about €${Math.round(T.xstar).toLocaleString("en")} instead of €1,000 today. at that rate, a reward ten years away is worth <b>${pct(w10)}</b> of the same reward today.</p>
+      <p class="sub">${d >= 0.9 ? "you're very patient. future you gets a lot of weight." : d >= 0.75 ? "you're moderately patient." : "you strongly prefer now. that's not irrational. the future is uncertain and so are your future preferences."}
+      ${P.CFC != null ? ` your future-focus score is ${P.CFC.toFixed(1)} of 5.` : ""}</p>
+      ${S.a.t_fl >= 4 ? `<p class="sub">you agreed that you'll relax after the next milestone. nanni says that too. the finish line tends to move.</p>` : ""}
+      ${S.a.c_forecast === "muchless" || S.a.c_forecast === "less" ? `<p class="sub">your last big goal felt less good than expected. that's affective forecasting error, and almost everyone has it. it means future you will likely enjoy the next goal less than present you predicts.</p>` : ""}`;
+  },
+  6: P => `<h2>how much your past decides</h2>
+      <div class="big">${P.SUNK != null ? pct(P.SUNK) : "–"}</div>
+      <p class="sub" style="margin-top:-2px">sunk-cost pull. 0% = only the future counts. 100% = the past decides.</p>
+      <p>${P.SUNK == null ? "" : P.SUNK < 0.3 ? "you let the past go. decisions are about what's next." : P.SUNK < 0.6 ? "the past has a vote, not a veto." : "past effort weighs heavily on your next move. often it's identity, not money: you've become \"the person who…\""}</p>
+      ${P.outdated ? `<p class="sub">outdated-function risk: <b>${P.outdated}</b>. ${P.outdated === "high" ? "your priorities moved a lot, your week didn't. you may be optimizing for who you were." : P.outdated === "medium" ? "your week lags your priorities a bit." : "your week has kept up with your priorities."}</p>` : ""}
+      ${P.ENDO != null ? `<p class="sub">environment shaping: ${P.ENDO.toFixed(1)} of 5. ${P.ENDO >= 3.5 ? "your environment may be teaching you what to prefer." : "your goals feel mostly your own."}</p>` : ""}`,
+  7: P => `<h2>the function you wish you had</h2>
+      <div class="big">${pct(P.drift)}</div>
+      <p class="sub" style="margin-top:-2px">of your weight you would move if you could choose what to want.</p>
+      ${P.drift != null ? (() => { const m = [...P.rows].sort((a, b) => (b.w - b.s) - (a.w - a.s)); return P.drift > 0.04 ? `<p>more <b>${esc(m[0].label)}</b>, less <b>${esc(m[m.length - 1].label)}</b>.</p>` : `<p>you'd barely change a thing. you endorse your own preferences.</p>`; })() : ""}
+      <p>your full utility function is ready.</p>`,
+};
+
+/* adaptive pair selection: compare values whose scores are close and that we know least about */
+function pickPair() {
+  const sc = Object.fromEntries(valueScores().map(x => [x.k, x.score]));
+  const seen = new Set(Object.values(S.pairs).map(p => [...p].sort().join("|")));
+  const appear = Object.fromEntries(VALUES.map(v => [v.k, 0]));
+  Object.values(S.pairs).forEach(p => p.forEach(k => appear[k]++));
+  let best = null;
+  for (let i = 0; i < VALUES.length; i++) for (let j = i + 1; j < VALUES.length; j++) {
+    const a = VALUES[i].k, b = VALUES[j].k; if (seen.has([a, b].sort().join("|"))) continue;
+    const cost = Math.abs(sc[a] - sc[b]) + 0.6 * (appear[a] + appear[b]) + Math.random() * 0.15;
+    if (!best || cost < best.c) best = { c: cost, p: Math.random() < 0.5 ? [a, b] : [b, a] };
   }
-  saveState(); render();
+  return best.p;
 }
-function addCustom() {
-  const el = $("#custom"); const label = el.value.trim().toLowerCase();
-  if (!label || state.vars.length >= 8) return;
-  const key = "c_" + label.replace(/[^a-z0-9]+/g, "_").slice(0, 20);
-  if (state.vars.find(v => v.key === key)) return;
-  const v = { key, sym: label.slice(0, 2).replace(/^./, ch => ch.toUpperCase()), label, hint: "", custom: true };
-  state.customs = { ...(state.customs || {}), [key]: v };
-  state.vars.push(v); saveState(); render();
+
+/* bind events for the current step */
+function bindStep(s) {
+  const card = $(".card");
+  card.querySelectorAll(".opt[data-v]").forEach(b => b.addEventListener("click", () => {
+    card.querySelectorAll(".opt").forEach(x => x.classList.remove("sel")); b.classList.add("sel");
+    const raw = b.dataset.v; const val = s.type === "likert" ? +raw : raw;
+    answer(s.id, val, { toast: s.type === "likert" || s.type === "pair" });
+  }));
+  if (s.type === "bipolar") {
+    const f = $("#bf"), l = $("#bl");
+    $("#bnext").onclick = () => answer(s.id, { feel: +f.value, lack: +l.value }, { toast: false });
+  }
+  if (s.type === "levels") {
+    card.querySelectorAll("input[type=range]").forEach(r => r.addEventListener("input", () => { r.nextElementSibling.textContent = r.value; }));
+    $("#gnext").onclick = () => { const o = {}; card.querySelectorAll("input[data-k]").forEach(r => (o[r.dataset.k] = +r.value)); answer("levels", o, { toast: false }); };
+  }
+  if (s.type === "hours") {
+    const upd = () => { let t = 0; card.querySelectorAll("input[data-k]").forEach(r => (t += +r.value || 0)); $("#hsum").textContent = `${t} hours logged`; };
+    card.querySelectorAll("input[data-k]").forEach(r => r.addEventListener("input", upd)); upd();
+    $("#gnext").onclick = () => { const o = {}; card.querySelectorAll("input[data-k]").forEach(r => (o[r.dataset.k] = clamp(+r.value || 0, 0, 168))); answer("hours", o, { toast: false }); };
+  }
+  if (s.type === "wish") {
+    card.querySelectorAll(".seg").forEach(sg => sg.querySelectorAll("button").forEach(b => b.addEventListener("click", () => { sg.querySelectorAll("button").forEach(x => x.classList.remove("sel")); b.classList.add("sel"); })));
+    $("#gnext").onclick = () => { const o = {}; card.querySelectorAll(".seg").forEach(sg => (o[sg.dataset.k] = sg.querySelector(".sel").dataset.v)); answer("wish", o, { toast: false }); };
+  }
+  if (s.type === "predict" && s.kind === "slider") {
+    const r = $("#pr"); r.addEventListener("input", () => { if (s.pctLabel) $("#prv").textContent = r.value + "%"; });
+    $("#prnext").onclick = () => answer(s.id, +r.value, { toast: false });
+  }
+  if (s.type === "reflect") {
+    const t = $("#rt"); t.focus();
+    $("#rnext").onclick = () => answer(s.id, t.value.trim(), { toast: false });
+  }
 }
-function toggleTable(id) { const el = document.getElementById(id); el.hidden = !el.hidden; }
+
+document.addEventListener("keydown", e => {
+  const s = step(); if (!s || e.target.matches("input, textarea")) return;
+  if (/^[1-9]$/.test(e.key)) { const opts = document.querySelectorAll(".card .opt[data-v]"); const b = opts[+e.key - 1]; if (b) b.click(); }
+  if (e.key === "ArrowLeft" && S.i > 1 && s.type !== "results") go(-1);
+  if (e.key === "Enter") { const p = document.querySelector(".card .btn.primary"); if (p) p.click(); }
+});
+
+/* =========================================================================
+   live panel
+   ========================================================================= */
+function renderPanel() {
+  const s = step(); if (s.type === "results" || s.type === "welcome") return;
+  const P = profile();
+  const answered = Object.keys(S.a).filter(k => ITEMS[k] && ITEMS[k].value).length + Object.keys(S.pairs).filter(k => S.a[k]).length;
+  const prevMap = PREV_W; PREV_W = Object.fromEntries(P.rows.map(r => [r.k, r.s]));
+  const sorted = [...P.rows].sort((a, b) => b.s - a.s);
+  const maxW = sorted[0].s;
+  const meter = (label, l, r, val, lockedCh) => val == null
+    ? `<div class="meter locked"><div class="lbl"><span>${label}</span><span>🔒 chapter ${lockedCh}</span></div><div class="track"></div></div>`
+    : `<div class="meter"><div class="lbl"><span>${l}</span><span>${r}</span></div><div class="track"><span class="dot" style="left:${clamp(val, 0, 1) * 100}%"></span></div></div>`;
+  const reached = ch => FLOW.findIndex(x => x.type === "reveal" && x.ch === ch) < S.i || S.seenReveal[ch];
+  const B = badges(P);
+  $("#panel").innerHTML = `
+    <div class="pcard"><h3>${S.name ? esc(S.name) + "'s" : "your"} function so far</h3>
+      <div class="peq">${answered >= 3 ? equationHTML(P.rows, P.H, 5, prevMap) : `<span class="muted">answer a few cards and it starts to form…</span>`}</div>
+      ${reached(5) && P.T.done ? `<p class="muted" style="margin:8px 0 0">over time: Σ δ<sup>t</sup>·U<sub>t</sub>, δ ≈ ${P.T.delta.toFixed(2)}</p>` : ""}
+    </div>
+    <div class="pcard"><h3>variables</h3>
+      ${sorted.map(r => `<div class="vbar"><span>${esc(r.label)}</span><span class="tr"><i style="width:${(r.s / maxW) * 100}%;opacity:${0.3 + 0.7 * r.clarity}"></i></span><span>${pct(r.s)}</span></div>`).join("")}
+      <p class="muted" style="margin:8px 0 0">faded bars = still unclear. more answers sharpen them.</p>
+    </div>
+    <div class="pcard"><h3>traits</h3>
+      ${meter("chase vs escape", "nanni", "hanni", reached(2) ? P.H : null, 2)}
+      ${meter("good enough vs the best", "satisficer", "maximizer", reached(3) && P.MAX != null ? (P.MAX - 1) / 4 : null, 3)}
+      ${meter("say vs do", "drifted", "aligned", reached(4) ? P.align : null, 4)}
+      ${meter("now vs later", "now", "later", reached(5) && P.T.done ? clamp((P.T.delta - 0.4) / 0.6, 0, 1) : null, 5)}
+      ${meter("past vs future", "past decides", "future decides", reached(6) && P.SUNK != null ? 1 - P.SUNK : null, 6)}
+      ${P.arch && reached(3) ? `<p style="margin:12px 0 0;font-size:13px">emerging type: <b>${P.arch.name}</b></p>` : ""}
+    </div>
+    <div class="pcard"><h3>chapters</h3><ul class="chlist">
+      ${CHAPTERS.map(c => { const done = reached(c.n); const now = s.chap === c.n; return `<li class="${done ? "done" : now ? "now" : ""}"><span>${done ? "✓" : now ? "→" : "·"}</span>${esc(c.title)}</li>`; }).join("")}
+    </ul></div>
+    <div class="pcard"><h3>badges</h3><div class="badges">${B.map(b => `<span class="badge ${b.on && (S.badgesShown || []).includes(b.k) ? "on" : ""}" title="${esc(b.desc)}">${esc(b.name)}</span>`).join("")}</div></div>`;
+}
+
+/* =========================================================================
+   results
+   ========================================================================= */
+function RESULTS() {
+  const P = profile();
+  const who = S.name ? esc(S.name) + "'s" : "your";
+  const T = P.T;
+  return `
+    <div class="kicker">${who} utility function</div>
+    <div class="arch">${P.arch ? P.arch.name : "your profile"}</div>
+    <p style="font-size:18px">${P.arch ? esc(P.arch.line) : ""}</p>
+    <p class="sub">${P.arch ? esc(P.arch.watch) : ""}</p>
+
+    <div class="rcard">
+      <h3>the function</h3>
+      <div class="eq">${equationHTML(P.rows, P.H)}</div>
+      ${T.done ? `<div class="eq" style="font-size:17px;margin-top:4px"><i>U</i><sub>life</sub> = Σ<sub>t</sub> ${T.delta.toFixed(2)}<sup>t</sup> · <i>U</i><sub>t</sub></div>` : ""}
+      <p class="muted" style="margin-top:10px">weights = what you say matters (portraits + forced choices). ln(1+x) = something you chase: more feels good, with diminishing returns. −w/(1+x) = something whose absence you escape: the pain shrinks as you get more, but never turns into joy. δ = how much a year from now counts today.</p>
+    </div>
+
+    <div class="tiles">
+      <div class="tile"><div class="k">hanni share</div><div class="v">${pct(P.H)}</div><div class="d">of your motivation is chasing, not escaping</div></div>
+      <div class="tile"><div class="k">say vs do</div><div class="v">${pct(P.align)}</div><div class="d">overlap of stated weights and hours</div></div>
+      <div class="tile"><div class="k">10 years out</div><div class="v">${T.done ? pct(Math.pow(T.delta, 10)) : "–"}</div><div class="d">what a future reward is worth to you today</div></div>
+      <div class="tile"><div class="k">want to change</div><div class="v">${pct(P.drift)}</div><div class="d">of your weight, if you could choose what to want</div></div>
+    </div>
+
+    <div class="rcard"><h2>where you sit</h2>
+      <p class="sub">chase vs escape, and good enough vs the best. hanni and nanni from the essay for reference.</p>
+      <div id="cQuad"></div></div>
+
+    <div class="rcard"><h2>stated, revealed, wished</h2>
+      <p class="sub">share of weight per variable. wide gaps are where your life and your words disagree.</p>
+      <div class="legend" id="lg1"></div><div id="c1"></div>
+      <button class="linkbtn" onclick="document.getElementById('t1').hidden=!document.getElementById('t1').hidden">show as table</button>
+      <div id="t1" hidden style="overflow-x:auto"></div></div>
+
+    <div class="rcard"><h2>why you do what you do</h2>
+      <p class="sub">self-determination theory orders motivation from fully your own to fully imposed. 1 = strongly disagree, 5 = strongly agree.</p>
+      <div class="legend"><span><svg width="12" height="12"><rect width="12" height="12" rx="2" fill="var(--pull)"/></svg>autonomous · hanni</span><span><svg width="12" height="12"><rect width="12" height="12" rx="2" fill="var(--push)"/></svg>controlled · nanni</span></div>
+      <div id="c2"></div></div>
+
+    <div class="rcard"><h2>where one more unit pays most</h2>
+      <p class="sub">marginal utility right now: weight × slope of your curve at your current level.</p>
+      <div id="c3"></div></div>
+
+    ${T.done ? `<div class="rcard"><h2>how fast the future fades</h2>
+      <p class="sub">the present value of 100 units of utility, t years from now.</p>
+      <div class="legend"><span><svg width="18" height="10"><line x1="0" y1="5" x2="18" y2="5" stroke="var(--series-1)" stroke-width="2"/></svg>you, δ = ${T.delta.toFixed(2)}</span><span><svg width="18" height="10"><line x1="0" y1="5" x2="18" y2="5" stroke="var(--ref)" stroke-width="2"/></svg>essay example, δ = 0.90</span></div>
+      <div id="c4"></div></div>` : ""}
+
+    <div class="rcard"><h2>how well you know yourself</h2>
+      <p class="sub">your guesses vs what your answers say.</p>
+      <div class="legend"><span><svg width="16" height="16"><rect x="3" y="3" width="10" height="10" rx="2" fill="var(--series-2)" stroke="var(--surface-1)" stroke-width="2"/></svg>your guess</span><span><svg width="16" height="16"><circle cx="8" cy="8" r="5.5" fill="var(--series-1)" stroke="var(--surface-1)" stroke-width="2"/></svg>your answers</span></div>
+      <div id="c5"></div>
+      <div class="badges" style="margin-top:14px">${badges(P).map(b => `<span class="badge ${b.on ? "on" : ""}" title="${esc(b.desc)}">${b.on ? "✓ " : ""}${esc(b.name)} <span class="muted">· ${esc(b.desc)}</span></span>`).join("")}</div></div>
+
+    <div class="rcard"><h2>what this suggests</h2><ul class="list">${insights(P).map(t => `<li>${t}</li>`).join("")}</ul></div>
+
+    ${reflectionsHTML()}
+
+    <div class="rcard"><h2>questions to sit with</h2><ul class="list">
+      <li>are you pursuing success because it makes you happy, or because not having it would make you unhappy?</li>
+      <li>does the extra utility from working more exceed what you give up? ten hours a week is 2,600 hours over five years.</li>
+      <li>which past investments are you counting again when you decide about the future?</li>
+      <li>are you choosing your environment because it fits your preferences, or is it teaching you what to prefer?</li>
+      <li><b>is this the function you actually want to maximize?</b></li></ul></div>
+
+    <div class="rcard"><h2>method</h2>
+      <p class="sources">the questions are original and written for this tool. each block is inspired by an established research construct, but this is not a validated psychometric test. read it as a structured mirror.</p>
+      <ul class="sources">
+        <li><b>values</b>: portrait format from Schwartz's theory of basic values and the Portrait Values Questionnaire (Schwartz 1992; Schwartz et al. 2001). ratings are centered on your own average, then combined with forced choices.</li>
+        <li><b>hanni vs nanni</b>: autonomous vs controlled motivation from self-determination theory (Ryan & Deci 2000; work motivation scale by Tremblay et al. 2009), the dualistic model of passion (Vallerand et al. 2003), and promotion vs prevention focus (Higgins 1997).</li>
+        <li><b>marginal utility</b>: maximizing vs satisficing (Schwartz et al. 2002) and hedonic adaptation (Brickman & Campbell 1971; Frederick & Loewenstein 1999).</li>
+        <li><b>future self</b>: delay discounting by titration (Kirby & Maraković 1996), consideration of future consequences (Strathman et al. 1994), affective forecasting (Wilson & Gilbert 2005).</li>
+        <li><b>sunk cost</b>: Arkes & Blumer (1985). <b>second-order desires</b>: Frankfurt (1971).</li>
+        <li><b>the maths</b>: hanni terms α·ln(1+x), nanni terms −k/(1+x), exponential discounting Σδ<sup>t</sup>u(c<sub>t</sub>), all from the essay. hanni share = weighted blend of autonomous motivation share (35%), harmonious passion share (25%), promotion focus share (15%) and your joy-vs-relief answers (25%).</li>
+      </ul></div>
+
+    <div class="actions">
+      <button class="btn primary" onclick="copySummary()">copy summary</button>
+      <button class="btn" onclick="shareLink()">copy share link</button>
+      <button class="btn" onclick="window.print()">print / pdf</button>
+      <button class="btn" onclick="S.i=1;save();render()">replay answers</button>
+      <button class="btn" onclick="if(confirm('clear all answers and start over?')){S=fresh();location.hash='';save();render()}">start over</button>
+    </div>
+    <p class="muted" style="margin-top:24px">based on marius busen, "what's your utility function?"</p>`;
+}
+function reflectionsHTML() {
+  const rs = FLOW.filter(s => s.type === "reflect" && (S.a[s.id] || "").trim());
+  if (!rs.length) return "";
+  return `<div class="rcard words"><h2>in your own words</h2>${rs.map(s => `<blockquote><small>${esc(s.text)}</small>${esc(S.a[s.id])}</blockquote>`).join("")}</div>`;
+}
+function insights(P) {
+  const out = []; const rows = P.rows;
+  if (P.hasHours) {
+    const g = [...rows].sort((a, b) => (b.r - b.s) - (a.r - a.s)); const o = g[0], u = g[g.length - 1];
+    if (o.r - o.s > 0.05) out.push(`<b>${esc(o.label)}</b> gets ${pct(o.r)} of your hours but ${pct(o.s)} of your stated weight. an observer would say you value it more than you claim.`);
+    if (u.s - u.r > 0.05) out.push(`<b>${esc(u.label)}</b> is ${pct(u.s)} of what you say matters and ${pct(u.r)} of your week.`);
+  }
+  const nan = rows.filter(r => r.p < 0.5 && r.s >= 0.1);
+  if (nan.length) out.push(`you mostly escape a lack of ${nan.map(r => `<b>${esc(r.label)}</b>`).join(", ")}. those are nanni terms: more brings relief, never joy.`);
+  if (P.mot.J != null && P.mot.I != null && P.mot.J > P.mot.I) out.push(`guilt and proving yourself (${P.mot.J.toFixed(1)}) drive your work more than enjoyment (${P.mot.I.toFixed(1)}).`);
+  const top = [...rows].sort((a, b) => b.muShare - a.muShare)[0];
+  out.push(`your next hour pays most in <b>${esc(top.label)}</b> (${pct(top.muShare)} of marginal utility).`);
+  const most = [...rows].sort((a, b) => b.r - a.r)[0];
+  if (P.hasHours && most.level >= 8) out.push(`<b>${esc(most.label)}</b> gets the most hours and you're already at ${most.level}/10 there. that's the flat part of the curve.`);
+  if (P.MAX != null && P.ADAPT != null && P.MAX >= 3.5 && P.ADAPT >= 3.5) out.push(`you want the best and wins fade fast. that's a treadmill: high effort, short reward.`);
+  if (P.T.done && S.a.t_fl >= 4) out.push(`you'll "finally relax" after the next milestone. your answers suggest the finish line will move.`);
+  if (P.outdated === "high") out.push(`your priorities changed a lot in five years, your week less. you may be maximizing an outdated function.`);
+  if (P.SUNK != null && P.SUNK >= 0.6) out.push(`past investment weighs heavily on your next move (${pct(P.SUNK)}).`);
+  if (P.drift != null && P.drift > 0.04) { const m = [...rows].sort((a, b) => (b.w - b.s) - (a.w - a.s)); out.push(`you'd choose more <b>${esc(m[0].label)}</b> and less <b>${esc(m[m.length - 1].label)}</b>. your current week matches ${pct(P.wishAlign)} of the function you wish you had.`); }
+  return out;
+}
 
 /* ---------- charts ---------- */
-const tip = $("#tip");
+const tip = () => $("#tip");
 function bindTips(root) {
   root.querySelectorAll("[data-tip]").forEach(el => {
-    el.addEventListener("mousemove", e => {
-      tip.innerHTML = el.getAttribute("data-tip"); tip.style.opacity = 1;
-      const x = Math.min(e.clientX + 14, window.innerWidth - tip.offsetWidth - 8);
-      tip.style.left = x + "px"; tip.style.top = (e.clientY + 14) + "px";
-    });
-    el.addEventListener("mouseleave", () => (tip.style.opacity = 0));
+    el.addEventListener("mousemove", e => { const t = tip(); t.innerHTML = el.getAttribute("data-tip"); t.style.opacity = 1; t.style.left = Math.min(e.clientX + 14, innerWidth - t.offsetWidth - 8) + "px"; t.style.top = e.clientY + 14 + "px"; });
+    el.addEventListener("mouseleave", () => (tip().style.opacity = 0));
   });
 }
-function width(el) { return Math.max(300, el.clientWidth); }
-const SHAPES = {
-  stated:   (x, y, c) => `<circle cx="${x}" cy="${y}" r="5.5" fill="${c}" stroke="var(--surface-1)" stroke-width="2"/>`,
-  revealed: (x, y, c) => `<rect x="${x - 5.5}" y="${y - 5.5}" width="11" height="11" rx="2" fill="${c}" stroke="var(--surface-1)" stroke-width="2"/>`,
-  wished:   (x, y, c) => `<path d="M${x} ${y - 7} L${x + 7} ${y} L${x} ${y + 7} L${x - 7} ${y} Z" fill="${c}" stroke="var(--surface-1)" stroke-width="2"/>`,
+const W = el => Math.max(300, el.clientWidth);
+const SH = {
+  circle: (x, y, c, r = 5.5) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${c}" stroke="var(--surface-1)" stroke-width="2"/>`,
+  square: (x, y, c) => `<rect x="${x - 5.5}" y="${y - 5.5}" width="11" height="11" rx="2" fill="${c}" stroke="var(--surface-1)" stroke-width="2"/>`,
+  diamond: (x, y, c) => `<path d="M${x} ${y - 7}L${x + 7} ${y}L${x} ${y + 7}L${x - 7} ${y}Z" fill="${c}" stroke="var(--surface-1)" stroke-width="2"/>`,
 };
-const SERIES = [
-  { k: "s", name: "stated", color: "var(--series-1)", shape: "stated" },
-  { k: "r", name: "revealed", color: "var(--series-2)", shape: "revealed" },
-  { k: "w", name: "wished", color: "var(--series-3)", shape: "wished" },
-];
+const hbar = (x, y, w, h, c, op = 1) => w <= 0 ? "" : `<path d="M${x} ${y}h${Math.max(0, w - 4)}a4 4 0 0 1 4 4v${h - 8}a4 4 0 0 1-4 4h${-Math.max(0, w - 4)}Z" fill="${c}" opacity="${op}"/>`;
 
-function drawResult() {
-  const c = compute();
-  const rows = c.rows;
+function drawResults() {
+  const P = profile(); const rows = P.rows;
 
-  /* equation */
-  const terms = rows.map((x, i) => {
-    const sym = `<i>${esc(x.sym)}</i>`;
-    const t = x.p >= 0.5 ? `${f2(x.s)}·ln(1+${sym})` : `${f2(x.s)}/(1+${sym})`;
-    const sign = x.p >= 0.5 ? (i === 0 ? "" : " + ") : (i === 0 ? "−" : " − ");
-    return `<span class="t">${sign}${t}</span>`;
-  }).join(" ");
-  $("#eq").innerHTML = `<i>U</i> = ${terms}`;
+  /* quadrant */
+  { const el = $("#cQuad"); const w = W(el), h = 300, l = 40, r = 16, t = 12, b = 36;
+    const sx = v => l + v * (w - l - r), sy = v => t + (1 - (v - 1) / 4) * (h - t - b);
+    let g = `<rect x="${l}" y="${t}" width="${w - l - r}" height="${h - t - b}" fill="none" stroke="var(--grid)"/>
+      <line x1="${sx(.5)}" x2="${sx(.5)}" y1="${t}" y2="${h - b}" stroke="var(--grid)"/><line x1="${l}" x2="${w - r}" y1="${sy(3)}" y2="${sy(3)}" stroke="var(--grid)"/>
+      <text class="tick" x="${l + 8}" y="${t + 18}">the runner</text><text class="tick" x="${w - r - 8}" y="${t + 18}" text-anchor="end">the climber</text>
+      <text class="tick" x="${l + 8}" y="${h - b - 10}">the guardian</text><text class="tick" x="${w - r - 8}" y="${h - b - 10}" text-anchor="end">the gardener</text>
+      <text x="${l}" y="${h - 10}">← escaping (nanni)</text><text x="${w - r}" y="${h - 10}" text-anchor="end">chasing (hanni) →</text>
+      <text transform="translate(14 ${(t + h - b) / 2}) rotate(-90)" text-anchor="middle">satisficer ↔ maximizer</text>`;
+    const refs = [["hanni", .8, 3.6], ["nanni", .25, 4.2]];
+    refs.forEach(([n, x, y]) => { g += `<g data-tip="<b>${n}</b> (illustrative)">${SH.circle(sx(x), sy(y), "var(--ref)", 5)}<text x="${sx(x) + 10}" y="${sy(y) + 4}">${n}</text></g>`; });
+    if (P.H != null && P.MAX != null) g += `<g data-tip="<b>you</b><br>hanni share ${pct(P.H)}<br>maximizer ${P.MAX.toFixed(1)}/5">${SH.circle(sx(P.H), sy(P.MAX), "var(--series-1)", 8)}<text class="strong" x="${sx(P.H) + 13}" y="${sy(P.MAX) + 4}">you</text></g>`;
+    el.innerHTML = `<svg width="${w}" height="${h}" role="img" aria-label="archetype quadrant">${g}</svg>`; }
 
-  /* chart 1: dot plot */
-  $("#legend1").innerHTML = SERIES.map(s => `<span><svg width="16" height="16">${SHAPES[s.shape](8, 8, s.color)}</svg>${s.name}</span>`).join("");
-  const el1 = $("#chart1"); const W = width(el1); const L = 120, R = 24, rowH = 36, T = 8;
-  const max1 = Math.max(0.1, ...rows.flatMap(x => [x.s, x.r, x.w]));
-  const xMax = Math.ceil(max1 * 10) / 10;
-  const sx = v => L + (v / xMax) * (W - L - R);
-  const H1 = T + rows.length * rowH + 24;
-  let g = "";
-  for (let t = 0; t <= xMax + 1e-9; t += 0.1) {
-    g += `<line x1="${sx(t)}" x2="${sx(t)}" y1="${T}" y2="${H1 - 22}" stroke="var(--grid)" stroke-width="1"/>
-          <text class="tick" x="${sx(t)}" y="${H1 - 6}" text-anchor="middle">${Math.round(t * 100)}%</text>`;
-  }
-  rows.forEach((x, i) => {
-    const y = T + i * rowH + rowH / 2;
-    const vals = SERIES.map(s => x[s.k]);
-    g += `<text x="${L - 12}" y="${y + 4}" text-anchor="end">${esc(x.label)}</text>
-          <line x1="${sx(Math.min(...vals))}" x2="${sx(Math.max(...vals))}" y1="${y}" y2="${y}" stroke="var(--axis)" stroke-width="2"/>`;
-    SERIES.forEach(s => {
-      g += `<g data-tip="<b>${esc(x.label)}</b><br>${s.name}: ${pct(x[s.k])}">
-              <rect x="${sx(x[s.k]) - 12}" y="${y - 14}" width="24" height="28" fill="transparent"/>
-              ${SHAPES[s.shape](sx(x[s.k]), y, s.color)}</g>`;
-    });
-  });
-  el1.innerHTML = `<svg width="${W}" height="${H1}" role="img" aria-label="stated, revealed and wished weights per variable">${g}</svg>`;
-  $("#t1").innerHTML = `<table><tr><th>variable</th><th>stated</th><th>revealed</th><th>wished</th><th>hours/wk</th><th>pull</th><th>push</th><th>level</th></tr>
-    ${rows.map(x => `<tr><td>${esc(x.label)}</td><td>${pct(x.s)}</td><td>${pct(x.r)}</td><td>${pct(x.w)}</td><td>${x.hours}</td><td>${x.pull}</td><td>${x.push}</td><td>${x.level}</td></tr>`).join("")}</table>`;
+  /* stated / revealed / wished dot plot */
+  { const SER = [["s", "stated", "var(--series-1)", "circle"], ["r", "revealed (hours)", "var(--series-2)", "square"], ["w", "wished", "var(--series-3)", "diamond"]];
+    $("#lg1").innerHTML = SER.map(s => `<span><svg width="16" height="16">${SH[s[3]](8, 8, s[2])}</svg>${s[1]}</span>`).join("");
+    const el = $("#c1"); const w = W(el), l = 120, r = 20, rh = 34, t = 6;
+    const sr = [...rows].sort((a, b) => b.s - a.s);
+    const mx = Math.ceil(Math.max(.1, ...rows.flatMap(x => [x.s, x.r, x.w])) * 10) / 10;
+    const sx = v => l + v / mx * (w - l - r); const h = t + sr.length * rh + 24;
+    let g = ""; for (let v = 0; v <= mx + 1e-9; v += .1) g += `<line x1="${sx(v)}" x2="${sx(v)}" y1="${t}" y2="${h - 22}" stroke="var(--grid)"/><text class="tick" x="${sx(v)}" y="${h - 6}" text-anchor="middle">${Math.round(v * 100)}%</text>`;
+    sr.forEach((x, i) => { const y = t + i * rh + rh / 2; const vals = SER.map(s => P.hasHours || s[0] !== "r" ? x[s[0]] : null).filter(v => v != null);
+      g += `<text x="${l - 12}" y="${y + 4}" text-anchor="end">${esc(x.label)}</text><line x1="${sx(Math.min(...vals))}" x2="${sx(Math.max(...vals))}" y1="${y}" y2="${y}" stroke="var(--axis)" stroke-width="2"/>`;
+      SER.forEach(s => { if (s[0] === "r" && !P.hasHours) return; g += `<g data-tip="<b>${esc(x.label)}</b><br>${s[1]}: ${pct(x[s[0]])}${s[0] === "r" ? ` (${x.hours}h/wk)` : ""}"><rect x="${sx(x[s[0]]) - 12}" y="${y - 14}" width="24" height="28" fill="transparent"/>${SH[s[3]](sx(x[s[0]]), y, s[2])}</g>`; }); });
+    el.innerHTML = `<svg width="${w}" height="${h}" role="img" aria-label="stated revealed and wished weights">${g}</svg>`;
+    $("#t1").innerHTML = `<table><tr><th>variable</th><th>stated</th><th>revealed</th><th>wished</th><th>h/wk</th><th>level</th><th>chase share</th><th>marginal</th></tr>${sr.map(x => `<tr><td>${esc(x.label)}</td><td>${pct(x.s)}</td><td>${P.hasHours ? pct(x.r) : "–"}</td><td>${pct(x.w)}</td><td>${x.hours}</td><td>${x.level}</td><td>${pct(x.p)}</td><td>${pct(x.muShare)}</td></tr>`).join("")}</table>`; }
 
-  /* chart 2: marginal utility bars, sorted, single series */
-  const el2 = $("#chart2"); const W2 = width(el2);
-  const sorted = [...rows].sort((a, b) => b.muShare - a.muShare);
-  const max2 = Math.max(...sorted.map(x => x.muShare), 0.01);
-  const sx2 = v => (v / max2) * (W2 - L - 56);
-  const barH = 18, gap2 = 12;
-  const H2 = sorted.length * (barH + gap2) + 4;
-  let g2 = "";
-  sorted.forEach((x, i) => {
-    const y = i * (barH + gap2) + 2; const w = Math.max(2, sx2(x.muShare));
-    const op = i === 0 ? 1 : 0.55;
-    g2 += `<g data-tip="<b>${esc(x.label)}</b><br>share of marginal utility: ${pct(x.muShare)}<br>current level ${x.level}/10 · stated weight ${pct(x.s)}">
-      <rect x="${L}" y="${y - 4}" width="${W2 - L}" height="${barH + 8}" fill="transparent"/>
-      <text x="${L - 12}" y="${y + barH / 2 + 4}" text-anchor="end">${esc(x.label)}</text>
-      <path d="M${L} ${y} h${w - 4} a4 4 0 0 1 4 4 v${barH - 8} a4 4 0 0 1 -4 4 h${-(w - 4)} Z" fill="var(--series-1)" opacity="${op}"/>
-      <text x="${L + w + 8}" y="${y + barH / 2 + 4}" style="fill:var(--text-primary)">${pct(x.muShare)}</text></g>`;
-  });
-  g2 += `<line x1="${L}" x2="${L}" y1="0" y2="${H2}" stroke="var(--axis)" stroke-width="1"/>`;
-  el2.innerHTML = `<svg width="${W2}" height="${H2}" role="img" aria-label="marginal utility by variable">${g2}</svg>`;
+  /* motivation continuum */
+  { const el = $("#c2"); const m = P.mot; const w = W(el), l = 170, r = 44, bh = 18, gp = 14;
+    const data = [["intrinsic · i enjoy it", m.I, "var(--pull)"], ["identified · it matters to me", m.D, "var(--pull)"], ["introjected · guilt, proving", m.J, "var(--push)"], ["external · expectations, pay", m.E, "var(--push)"],
+                  ["harmonious passion", m.HP, "var(--pull)"], ["obsessive passion", m.OP, "var(--push)"]];
+    const sx = v => (v / 5) * (w - l - r); let g = ""; let y = 2;
+    data.forEach((d, i) => { if (i === 4) y += 14; if (d[1] == null) { y += bh + gp; return; }
+      g += `<g data-tip="<b>${d[0]}</b><br>${d[1].toFixed(1)} of 5"><rect x="0" y="${y - 4}" width="${w}" height="${bh + 8}" fill="transparent"/><text x="${l - 12}" y="${y + bh / 2 + 4}" text-anchor="end">${d[0]}</text>${hbar(l, y, sx(d[1]), bh, d[2])}<text class="strong" x="${l + sx(d[1]) + 8}" y="${y + bh / 2 + 4}">${d[1].toFixed(1)}</text></g>`; y += bh + gp; });
+    g += `<line x1="${l}" x2="${l}" y1="0" y2="${y - gp + 4}" stroke="var(--axis)"/>`;
+    el.innerHTML = `<svg width="${w}" height="${y}" role="img" aria-label="motivation types">${g}</svg>`; }
 
-  /* chart 3: diverging pull/push */
-  const el3 = $("#chart3"); const W3 = width(el3);
-  const mid = L + (W3 - L - 16) / 2; const half = (W3 - L - 16) / 2 - 4;
-  const H3 = rows.length * (barH + gap2) + 22;
-  let g3 = `<line x1="${mid}" x2="${mid}" y1="0" y2="${H3 - 20}" stroke="var(--axis)" stroke-width="1"/>
-            <text class="tick" x="${mid - half}" y="${H3 - 4}">10</text><text class="tick" x="${mid}" y="${H3 - 4}" text-anchor="middle">0</text>
-            <text class="tick" x="${mid + half}" y="${H3 - 4}" text-anchor="end">10</text>`;
-  rows.forEach((x, i) => {
-    const y = i * (barH + gap2) + 2;
-    const wp = (x.pull / 10) * half, wn = (x.push / 10) * half;
-    g3 += `<g data-tip="<b>${esc(x.label)}</b><br>pull ${x.pull}/10 · push ${x.push}/10<br>${x.p >= 0.5 ? "mostly chasing (hanni)" : "mostly escaping (nanni)"}">
-      <rect x="${L}" y="${y - 4}" width="${W3 - L}" height="${barH + 8}" fill="transparent"/>
-      <text x="${L - 12}" y="${y + barH / 2 + 4}" text-anchor="end">${esc(x.label)}</text>
-      ${wn > 0 ? `<path d="M${mid - 1} ${y} h${-(Math.max(4, wn) - 4)} a4 4 0 0 0 -4 4 v${barH - 8} a4 4 0 0 0 4 4 h${Math.max(4, wn) - 4} Z" fill="var(--push)"/>` : ""}
-      ${wp > 0 ? `<path d="M${mid + 1} ${y} h${Math.max(4, wp) - 4} a4 4 0 0 1 4 4 v${barH - 8} a4 4 0 0 1 -4 4 h${-(Math.max(4, wp) - 4)} Z" fill="var(--pull)"/>` : ""}
-    </g>`;
-  });
-  el3.innerHTML = `<svg width="${W3}" height="${H3}" role="img" aria-label="pull versus push per variable">${g3}</svg>`;
+  /* marginal utility */
+  { const el = $("#c3"); const w = W(el), l = 120, bh = 18, gp = 12; const sr = [...rows].sort((a, b) => b.muShare - a.muShare); const mx = sr[0].muShare;
+    const sx = v => v / mx * (w - l - 56); let g = "";
+    sr.forEach((x, i) => { const y = i * (bh + gp) + 2; g += `<g data-tip="<b>${esc(x.label)}</b><br>${pct(x.muShare)} of marginal utility<br>level ${x.level}/10 · weight ${pct(x.s)} · ${x.p >= .5 ? "chased" : "escaped"}"><rect x="0" y="${y - 4}" width="${w}" height="${bh + 8}" fill="transparent"/><text x="${l - 12}" y="${y + bh / 2 + 4}" text-anchor="end">${esc(x.label)}</text>${hbar(l, y, Math.max(3, sx(x.muShare)), bh, "var(--series-1)", i ? .55 : 1)}<text class="strong" x="${l + sx(x.muShare) + 8}" y="${y + bh / 2 + 4}">${pct(x.muShare)}</text></g>`; });
+    const h = sr.length * (bh + gp); g += `<line x1="${l}" x2="${l}" y1="0" y2="${h}" stroke="var(--axis)"/>`;
+    el.innerHTML = `<svg width="${w}" height="${h}" role="img" aria-label="marginal utility">${g}</svg>`; }
 
-  bindTips($("#view"));
-  $("#insights").innerHTML = insights(c).map(t => `<li>${t}</li>`).join("");
-}
+  /* discount curve */
+  if (P.T.done) { const el = $("#c4"); const w = W(el), h = 220, l = 40, r = 16, t = 10, b = 30; const d = P.T.delta;
+    const sx = v => l + v / 20 * (w - l - r), sy = v => t + (1 - v / 100) * (h - t - b);
+    let g = ""; [0, 25, 50, 75, 100].forEach(v => (g += `<line x1="${l}" x2="${w - r}" y1="${sy(v)}" y2="${sy(v)}" stroke="var(--grid)"/><text class="tick" x="${l - 8}" y="${sy(v) + 4}" text-anchor="end">${v}</text>`));
+    [0, 5, 10, 15, 20].forEach(v => (g += `<text class="tick" x="${sx(v)}" y="${h - 10}" text-anchor="middle">${v}y</text>`));
+    const line = (dd, c) => `<path d="${Array.from({ length: 21 }, (_, i) => `${i ? "L" : "M"}${sx(i)} ${sy(100 * Math.pow(dd, i))}`).join("")}" fill="none" stroke="${c}" stroke-width="2"/>`;
+    g += line(0.9, "var(--ref)") + line(d, "var(--series-1)");
+    for (let i = 0; i <= 20; i++) g += `<g data-tip="<b>${i} years</b><br>you: ${Math.round(100 * Math.pow(d, i))}<br>essay example: ${Math.round(100 * Math.pow(.9, i))}"><rect x="${sx(i) - (w - l - r) / 40}" y="${t}" width="${(w - l - r) / 20}" height="${h - t - b}" fill="transparent"/></g>`;
+    g += `<text class="strong" x="${sx(20) - 4}" y="${sy(100 * Math.pow(d, 20)) - 8}" text-anchor="end">${Math.round(100 * Math.pow(d, 20))}</text>`;
+    el.innerHTML = `<svg width="${w}" height="${h}" role="img" aria-label="discount curve">${g}</svg>`; }
 
-/* ---------- insights ---------- */
-function insights(c) {
-  const out = [];
-  const rows = c.rows;
-  const byGap = [...rows].sort((a, b) => (b.r - b.s) - (a.r - a.s));
-  const over = byGap[0], under = byGap[byGap.length - 1];
-  if (over.r - over.s > 0.05)
-    out.push(`<b>${esc(over.label)}</b> gets ${pct(over.r)} of your hours but only ${pct(over.s)} of your stated weight. an observer would say you value it more than you claim. or habit, fear or constraint is choosing for you.`);
-  if (under.s - under.r > 0.05)
-    out.push(`<b>${esc(under.label)}</b> is ${pct(under.s)} of what you say matters, but gets ${pct(under.r)} of your hours. what you say and what you do have drifted apart.`);
-  if (c.alignment >= 0.85) out.push(`your week and your words match well (${pct(c.alignment)}). the harder question is whether these are the preferences you want.`);
+  /* self-knowledge */
+  { const el = $("#c5"); const w = W(el), l = 150, r = 20, rh = 38, t = 4;
+    const data = [["hanni share", S.a.g_hanni != null ? S.a.g_hanni / 100 : null, P.H], ["say vs do", S.a.g_saydo != null ? S.a.g_saydo / 100 : null, P.align]];
+    const sx = v => l + v * (w - l - r); const h = t + data.length * rh + 22; let g = "";
+    [0, .25, .5, .75, 1].forEach(v => (g += `<line x1="${sx(v)}" x2="${sx(v)}" y1="${t}" y2="${h - 20}" stroke="var(--grid)"/><text class="tick" x="${sx(v)}" y="${h - 4}" text-anchor="middle">${v * 100}%</text>`));
+    data.forEach((d, i) => { const y = t + i * rh + rh / 2; g += `<text x="${l - 12}" y="${y + 4}" text-anchor="end">${d[0]}</text>`;
+      if (d[1] != null && d[2] != null) g += `<line x1="${sx(Math.min(d[1], d[2]))}" x2="${sx(Math.max(d[1], d[2]))}" y1="${y}" y2="${y}" stroke="var(--axis)" stroke-width="2"/>`;
+      if (d[1] != null) g += `<g data-tip="<b>${d[0]}</b><br>your guess: ${pct(d[1])}">${SH.square(sx(d[1]), y, "var(--series-2)")}</g>`;
+      if (d[2] != null) g += `<g data-tip="<b>${d[0]}</b><br>your answers: ${pct(d[2])}">${SH.circle(sx(d[2]), y, "var(--series-1)")}</g>`; });
+    const g1 = S.a.g_top, rank = g1 ? P.top.findIndex(x => x.k === g1) + 1 : null;
+    el.innerHTML = `<svg width="${w}" height="${h}" role="img" aria-label="guesses versus answers">${g}</svg>` + (g1 ? `<p class="sub" style="margin-top:8px">top variable: you guessed <b>${esc(V[g1].label)}</b>, it came out <b>#${rank}</b>.</p>` : ""); }
 
-  const nannis = rows.filter(x => x.p < 0.5 && x.s >= 0.1).sort((a, b) => b.s - a.s);
-  if (nannis.length)
-    out.push(`you mostly run from a lack of ${nannis.map(x => `<b>${esc(x.label)}</b>`).join(", ")}. more of it brings relief, not joy. the finish line tends to move.`);
-  else out.push(`you mostly chase what you value instead of running from its absence. that is the hanni pattern. watch for diminishing returns.`);
-
-  const top = [...rows].sort((a, b) => b.muShare - a.muShare)[0];
-  const sat = rows.filter(x => x.level >= 8 && x.r >= Math.max(...rows.map(y => y.r)) - 1e-9);
-  out.push(`your next hour is worth most in <b>${esc(top.label)}</b> (${pct(top.muShare)} of marginal utility). you are at ${top.level}/10 there.`);
-  if (sat.length)
-    out.push(`<b>${esc(sat[0].label)}</b> gets the most hours, and you rate your level at ${sat[0].level}/10. the fourth promotion may make you less happy than the first.`);
-
-  const moves = [...rows].sort((a, b) => (b.w - b.s) - (a.w - a.s));
-  const up = moves[0], down = moves[moves.length - 1];
-  if (c.drift > 0.05)
-    out.push(`if you could choose, you would care more about <b>${esc(up.label)}</b> (${pct(up.s)} → ${pct(up.w)}) and less about <b>${esc(down.label)}</b> (${pct(down.s)} → ${pct(down.w)}). you are maximizing a function you wish were different.`);
-  else out.push(`you would barely change your weights. you seem to endorse your own preferences.`);
-
-  const wishVsDo = 1 - 0.5 * rows.reduce((a, x) => a + Math.abs(x.w - x.r), 0);
-  out.push(`your current week matches ${pct(wishVsDo)} of the function you wish you had.`);
-  return out;
+  bindTips($("#main"));
 }
 
 /* ---------- export ---------- */
 function summaryText() {
-  const c = compute();
-  const lines = [`${state.name ? state.name + "'s" : "my"} utility function`, ""];
-  lines.push("U = " + c.rows.map((x, i) => (x.p >= 0.5 ? (i ? " + " : "") + `${f2(x.s)}·ln(1+${x.sym})` : (i ? " − " : "−") + `${f2(x.s)}/(1+${x.sym})`)).join(""));
-  lines.push("", `say vs do: ${pct(c.alignment)} · hanni share: ${pct(c.hanni)} · want to change: ${pct(c.drift)}`, "");
-  lines.push("variable | stated | revealed | wished | pull/push | level");
-  c.rows.forEach(x => lines.push(`${x.label} | ${pct(x.s)} | ${pct(x.r)} | ${pct(x.w)} | ${x.pull}/${x.push} | ${x.level}/10`));
-  lines.push("");
-  insights(c).forEach(t => lines.push("- " + t.replace(/<[^>]+>/g, "")));
-  return lines.join("\n");
+  const P = profile(); const L = [];
+  L.push(`${S.name ? S.name + "'s" : "my"} utility function${P.arch ? ": " + P.arch.name : ""}`, "");
+  L.push(equationHTML(P.rows, P.H).replace(/<[^>]+>/g, "").replace(/\s+/g, " "));
+  if (P.T.done) L.push(`over time: Σ δ^t · U_t, δ ≈ ${P.T.delta.toFixed(2)}`);
+  L.push("", `hanni share ${pct(P.H)} · say vs do ${pct(P.align)} · want to change ${pct(P.drift)}`, "");
+  L.push("variable | stated | revealed | wished | level");
+  [...P.rows].sort((a, b) => b.s - a.s).forEach(r => L.push(`${r.label} | ${pct(r.s)} | ${P.hasHours ? pct(r.r) : "–"} | ${pct(r.w)} | ${r.level}/10`));
+  L.push(""); insights(P).forEach(t => L.push("- " + t.replace(/<[^>]+>/g, "")));
+  return L.join("\n");
 }
-function flash(msg) { const t = $("#toast"); if (t) { t.textContent = msg; setTimeout(() => (t.textContent = ""), 2500); } }
-function copyText(s, msg) {
-  (navigator.clipboard ? navigator.clipboard.writeText(s) : Promise.reject()).then(() => flash(msg), () => { prompt("copy:", s); });
-}
+function copyText(s, msg) { (navigator.clipboard ? navigator.clipboard.writeText(s) : Promise.reject()).then(() => toast(msg), () => prompt("copy:", s)); }
 function copySummary() { copyText(summaryText(), "summary copied"); }
 function shareLink() {
-  const enc = btoa(unescape(encodeURIComponent(JSON.stringify({ ...state, step: STEPS.length - 1 }))));
-  copyText(location.href.split("#")[0] + "#" + enc, "link copied. it contains your answers.");
+  const lite = { ...S, i: FLOW.length - 1 }; // reflections stay private
+  Object.keys(lite.a = { ...S.a }).forEach(k => { if (/^r\d$/.test(k)) delete lite.a[k]; });
+  copyText(location.href.split("#")[0] + "#" + btoa(unescape(encodeURIComponent(JSON.stringify(lite)))), "link copied. it contains your answers, not your reflections.");
 }
 
-let rT; window.addEventListener("resize", () => { clearTimeout(rT); rT = setTimeout(() => STEPS[state.step] === "result" && drawResult(), 150); });
+let rT; addEventListener("resize", () => { clearTimeout(rT); rT = setTimeout(() => step().type === "results" && drawResults(), 150); });
 render();
 </script>
 </body>
