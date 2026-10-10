@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>racing · marius busen</title>
+<meta name="description" content="if there are 8 billion humans in the world, why don't we aim to create 8 billion first places?">
+<script>try{var t=localStorage.getItem("m-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="stylesheet" href="../fonts.css">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../base.css">
+<link rel="stylesheet" href="../components.css">
+<style>
+/* ---------- the track: a lane under the nav, a runner, a finish line that keeps moving ---------- */
+.track { position: sticky; top: 0; z-index: 5; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  background: color-mix(in srgb, var(--bg) 72%, transparent); border-bottom: 1px solid var(--line); }
+.lane { position: relative; height: 58px; }
+.lane .line { position: absolute; left: 0; right: 0; bottom: 12px; height: 8px; width: 100%; color: var(--chart-axis); }
+.lane .runner { position: absolute; bottom: 14px; left: 0; width: 34px; display: block; transform: translateX(var(--x, 0px)); transition: transform 120ms linear; }
+.lane .runner .m-sticker { width: 34px; }
+.lane.is-done .runner { transform: translateX(var(--x, 0px)) rotate(-6deg); }
+.lane .flag { position: absolute; bottom: 14px; left: 0; width: 22px; transform: translateX(var(--fx, 0px)); transition: transform 600ms var(--ease-out), opacity 900ms; color: var(--text); }
+.lane.is-done .flag { opacity: 0; }
+@media (max-width: 600px) { .lane { height: 66px; } .lane .flag { width: 17px; } .lane .tag { top: 6px; } }
+.lane .tag { position: absolute; right: 0; top: 8px; font: 400 var(--step--2)/1 var(--font-mono); color: var(--text-3); transition: opacity .6s; }
+
+/* ---------- layout ---------- */
+.essay-head { padding-block: var(--space-9) var(--space-7); max-width: 46rem; }
+.essay { display: grid; grid-template-columns: minmax(0, 1fr) 15rem; gap: var(--space-8); padding-left: clamp(0px, 8vw, 7rem); }
+.essay .m-prose { max-width: var(--measure); }
+.margin-col { position: relative; }
+.count { position: sticky; top: 110px; }
+.count .v { font: 380 clamp(2rem, 1.4rem + 2vw, 2.9rem)/1 var(--font-display); letter-spacing: -0.03em; font-variant-numeric: lining-nums tabular-nums; }
+.count .k { font: 500 var(--step--2)/1.3 var(--font-mono); text-transform: uppercase; letter-spacing: var(--tracking-caps); color: var(--text-3); margin-top: var(--space-2); }
+.count .d { font: italic 380 var(--step--1)/1.4 var(--font-text); color: var(--text-2); margin-top: var(--space-3); }
+@media (max-width: 1000px) { .essay { grid-template-columns: 1fr; padding-left: 0; } .margin-col { order: -1; } .count { position: static; display: flex; gap: var(--space-4); align-items: baseline; flex-wrap: wrap; } .count .d { width: 100%; margin-top: 0; } }
+
+.m-prose .q1 { font: 400 var(--step-2)/1.35 var(--font-display); letter-spacing: -0.01em; text-wrap: balance; }
+.m-prose .last { font: 400 var(--step-3)/1.2 var(--font-display); letter-spacing: var(--tracking-heading); margin-top: 1.6em; text-wrap: balance; }
+.smile { color: var(--accent-text); display: inline-block; transform-origin: 50% 60%; }
+.is-smiling .smile { animation: smile 2.4s var(--ease-spring) 1; }
+@keyframes smile { 0% { transform: rotate(0); } 20% { transform: rotate(90deg) scale(1.15); } 70% { transform: rotate(90deg); } 100% { transform: rotate(0); } }
+
+/* ---------- the rosette ---------- */
+.prize { display: flex; align-items: center; gap: var(--space-5); margin: var(--space-8) 0 0; }
+.rosette { position: relative; width: 112px; border: 0; background: none; padding: 0; cursor: pointer; scale: 0; rotate: -20deg;
+  transition: scale 700ms var(--ease-spring), rotate 700ms var(--ease-spring); -webkit-tap-highlight-color: transparent; }
+.rosette.is-in { scale: 1; rotate: -6deg; }
+.rosette:hover { rotate: 4deg; }
+.rosette:active { scale: .94; }
+.rosette svg { width: 112px; overflow: visible; }
+.prize p { font: italic 380 var(--step-1)/1.35 var(--font-text); color: var(--text-2); max-width: 18em; opacity: 0; transition: opacity 900ms 300ms; }
+.prize.is-in p { opacity: 1; }
+.burst { position: absolute; left: 50%; top: 42%; width: 7px; height: 16px; border-radius: 2px; pointer-events: none;
+  animation: burst 900ms var(--ease-out) forwards; }
+@keyframes burst { from { transform: translate(-50%, -50%) rotate(0); opacity: 1; } to { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--r)); opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) { .rosette { scale: 1; rotate: -6deg; } .prize p { opacity: 1; } }
+@media print { .track { display: none; } .rosette { scale: 1; } .prize p { opacity: 1; } }
+</style>
+</head>
+<body class="m-grain">
+<div class="m-page">
+  <nav class="m-nav" aria-label="main">
+    <a class="m-wordmark" href="home.html">marius busen <span class="dot"></span></a>
+    <ul>
+      <li><a href="writing.html" aria-current="page">writing</a></li>
+      <li><a href="writing.html?f=poem">poems</a></li>
+      <li><a href="project.html">things</a></li>
+      <li><a href="home.html#about">about</a></li>
+      <li><button class="m-theme" data-theme-toggle></button></li>
+    </ul>
+  </nav>
+</div>
+
+<div class="track" aria-hidden="true">
+  <div class="m-page">
+    <div class="lane" id="lane">
+      <svg class="line" viewBox="0 0 1000 8" preserveAspectRatio="none"><path d="M0 4C120 2 240 6 360 4s240-2 360 0 200 2 280 0" fill="none" stroke="currentColor" stroke-width="1.6" vector-effect="non-scaling-stroke" stroke-linecap="round"/></svg>
+      <span class="runner" data-art="hanni"></span>
+      <svg class="flag" viewBox="0 0 22 40"><g filter="url(#m-wobble)" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 38V3" fill="none"/><path d="M3 4h15l-4 6 4 6H3z" fill="#e8a088"/></g></svg>
+      <span class="tag" id="tag">finish line →</span>
+    </div>
+  </div>
+</div>
+
+<div class="m-page">
+  <header class="essay-head">
+    <div class="m-eyebrow m-reveal">short essay · 2 min read · [TK] date</div>
+    <h1 class="m-display m-reveal" style="--delay:80ms;margin-top:var(--space-4)">racing</h1>
+  </header>
+
+  <article class="essay" id="essay">
+    <div class="m-prose">
+      <p class="q1">if there are 8 billion humans in the world, why don’t we aim to create 8 billion 1st places? why can’t we collectively cheer on each other’s pursuit of winning first place in our own lives?</p>
+      <p>too often i fall into the trap of feeling like i need to participate in a race i never signed up for – resulting in feeling bad about myself, even though rationally i know it makes no sense.</p>
+      <p data-flag="chase">it’s a universally accepted fact that every human being is unique. but for some reason, we collectively decided we should all aim for the same goal. the measures we race toward — economic success, status, titles, power — are infinite by design. you can always have more. there is no finish line.</p>
+      <p>that’s the trap. not the ambition itself, but the belief that crossing some threshold will finally make you feel like enough.</p>
+      <p>my fundamental delusion is that there is something out there that will make me happy and fulfilled forever. but happiness is internal. and in being me, <span class="m-mark-swash">i am already in first place</span> – no one can beat me at that.</p>
+      <p class="last" id="last" data-flag="done">humanity is not a zero sum game. life is not a race <span class="smile">:)</span></p>
+
+      <div class="prize" id="prize">
+        <button class="rosette" id="rosette" type="button" aria-label="a first-place rosette, for you">
+          <svg viewBox="0 0 120 150" aria-hidden="true"><g filter="url(#m-wobble)" stroke="#2a241d" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round">
+            <path d="M44 84l-14 56 18-10 10 18 8-58z" fill="#e8a088"/><path d="M76 84l14 56-18-10-10 18-8-58z" fill="#93cdbd"/>
+            <path d="M60 6l8 9 11-5 3 11 12 1-2 12 10 6-7 9 6 10-11 4 1 12-12-1-4 11-10-6-8 9-8-9-10 6-4-11-12 1 1-12-11-4 6-10-7-9 10-6-2-12 12-1 3-11 11 5z" fill="#f0c46a"/>
+            <circle cx="60" cy="50" r="26" fill="#fbf8f3"/>
+            <text x="60" y="56" text-anchor="middle" font-family="Fraunces, Georgia, serif" font-style="italic" font-size="22" fill="#2a241d" stroke="none">1st</text>
+            <text x="60" y="69" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8" letter-spacing="1" fill="#5e554a" stroke="none">YOU</text>
+          </g></svg>
+        </button>
+        <p>one of 8 billion first places. this one is yours.</p>
+      </div>
+    </div>
+
+    <aside class="margin-col" aria-label="a number">
+      <div class="count m-reveal">
+        <div class="v" id="count" data-to="8000000000">0</div>
+        <div class="k">first places available</div>
+        <div class="d">one for every human. none of them taken from anyone else.</div>
+      </div>
+    </aside>
+  </article>
+
+  <nav class="m-split" aria-label="more writing" style="border-top:1px solid var(--line);padding-top:var(--space-5);margin-top:var(--space-9)">
+    <a class="m-btn is-ghost" href="essay.html">← what’s your utility function?</a>
+    <a class="m-btn is-ghost" href="thunderstorms.html">thunderstorms →</a>
+  </nav>
+
+  <footer class="m-footer">
+    <div class="m-split"><p class="m-signoff">cheering for you, wherever you are in your own race.</p><span class="m-clock" data-tz="Europe/Berlin" data-place="berlin"></span></div>
+  </footer>
+</div>
+
+<script src="../margin.js"></script>
+<script>
+(function () {
+  const REDUCE = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const lane = document.getElementById("lane"), runner = lane.querySelector(".runner"), flag = lane.querySelector(".flag"), tag = document.getElementById("tag");
+  const essay = document.getElementById("essay"), chaseP = document.querySelector('[data-flag="chase"]'), last = document.getElementById("last");
+  let mode = "fixed"; // fixed → chase (the finish line keeps moving) → done (there is no finish line)
+
+  /* runner follows reading progress; the flag waits, then runs away, then disappears */
+  function update() {
+    const r = essay.getBoundingClientRect(), vh = innerHeight;
+    const p = Math.min(1, Math.max(0, (vh * 0.5 - r.top) / (r.height - vh * 0.2)));
+    const W = lane.clientWidth - 40, x = p * W * 0.92;
+    runner.style.setProperty("--x", x + "px");
+    const chaseTop = chaseP.getBoundingClientRect().top, lastTop = last.getBoundingClientRect().top;
+    mode = lastTop < vh * 0.7 ? "done" : chaseTop < vh * 0.6 ? "chase" : "fixed";
+    const fx = mode === "fixed" ? W * 0.62 : Math.min(W + 30, x + 78);
+    flag.style.setProperty("--fx", fx + "px");
+    lane.classList.toggle("is-done", mode === "done");
+    tag.textContent = mode === "fixed" ? "finish line →" : mode === "chase" ? "the finish line keeps moving" : "no finish line. just you.";
+  }
+  addEventListener("scroll", update, { passive: true }); addEventListener("resize", update); update();
+
+  /* 8 billion, counted up once */
+  const el = document.getElementById("count"), to = +el.dataset.to, fmt = n => Math.round(n).toLocaleString("en");
+  if (REDUCE || !("IntersectionObserver" in window)) el.textContent = fmt(to);
+  else new IntersectionObserver((es, o) => es.forEach(e => {
+    if (!e.isIntersecting) return; o.disconnect();
+    const t0 = performance.now(), dur = 1800;
+    const tick = t => { const k = Math.min(1, (t - t0) / dur), ease = 1 - Math.pow(1 - k, 4); el.textContent = fmt(to * ease); if (k < 1) requestAnimationFrame(tick); };
+    requestAnimationFrame(tick);
+  }), { threshold: 0.6 }).observe(el);
+
+  /* the rosette arrives with the last line, and bursts when you press it */
+  const prize = document.getElementById("prize"), ros = document.getElementById("rosette");
+  const show = () => { ros.classList.add("is-in"); prize.classList.add("is-in"); last.classList.add("is-smiling"); };
+  if (REDUCE || !("IntersectionObserver" in window)) show();
+  else new IntersectionObserver((es, o) => es.forEach(e => { if (e.isIntersecting) { show(); o.disconnect(); } }), { threshold: 0.5 }).observe(ros);
+  const COLORS = ["#f0c46a", "#e8a088", "#93cdbd", "#9cbbe0", "#c4b9ea"];
+  ros.addEventListener("click", () => {
+    if (REDUCE) return;
+    for (let i = 0; i < 14; i++) {
+      const s = document.createElement("span"), a = (i / 14) * Math.PI * 2 + Math.random() * 0.4, d = 60 + Math.random() * 50;
+      s.className = "burst"; s.style.background = COLORS[i % COLORS.length];
+      s.style.setProperty("--dx", Math.cos(a) * d + "px"); s.style.setProperty("--dy", Math.sin(a) * d + "px"); s.style.setProperty("--r", (Math.random() * 360 - 180) + "deg");
+      ros.appendChild(s); setTimeout(() => s.remove(), 950);
+    }
+  });
+})();
+</script>
+</body>
+</html>
